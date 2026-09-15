@@ -523,11 +523,11 @@ export default function Home() {
                 </p>
 
                 <p>
-                  • Istalgan savolga o'tish mumkin
+                  • Istalgan savolga o&apos;tish mumkin
                 </p>
 
                 <p>
-                  • Test davomida boshqa tab yoki dasturga o'tmang
+                  • Test davomida boshqa tab yoki dasturga o&apos;tmang
                 </p>
 
               </div>
