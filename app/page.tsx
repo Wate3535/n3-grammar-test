@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { questions, type Question } from "@/questions";
 
-const EXAM_TIME = 15 * 60;
+const EXAM_TIME = 35 * 60;
 const MAX_WARNINGS = 3;
 const PASS_SCORE = 25;
 
@@ -515,7 +515,7 @@ export default function Home() {
                 </p>
 
                 <p>
-                  • Vaqt — 15 daqiqa
+                  • Vaqt — 35 daqiqa
                 </p>
 
                 <p>
