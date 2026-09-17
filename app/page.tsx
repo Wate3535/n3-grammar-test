@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { questions, type Question } from "@/questions";
 
-const EXAM_TIME = 40 * 60;
+const EXAM_TIME = 15 * 60;
 const MAX_WARNINGS = 3;
-const PASS_SCORE = 28;
+const PASS_SCORE = 25;
 
 type ExamState = "start" | "exam" | "finished";
 
@@ -399,7 +399,7 @@ export default function Home() {
   const finishExam = () => {
     if (!allAnswered) {
       setWarningText(
-        `Hali ${unansweredCount} ta savolga javob bermadingiz. Barcha 40 ta savolga javob bering.`
+        `Hali ${unansweredCount} ta savolga javob bermadingiz. Barcha ${totalQuestions} ta savolga javob bering.`
       );
 
       setShowWarning(true);
@@ -448,11 +448,11 @@ export default function Home() {
             </div>
 
             <h1 className="mt-5 text-3xl font-bold text-slate-900">
-              N3 Grammar Test
+              N3 Vocabulary Test
             </h1>
 
             <p className="mt-2 text-slate-500">
-              JLPT N3 文法試験
+              JLPT N3 語彙試験
             </p>
 
           </div>
@@ -470,7 +470,7 @@ export default function Home() {
                 </p>
 
                 <p className="text-2xl font-bold text-blue-900 mt-1">
-                  40
+                  {questions.length}
                 </p>
 
               </div>
@@ -482,7 +482,7 @@ export default function Home() {
                 </p>
 
                 <p className="text-2xl font-bold text-blue-900 mt-1">
-                  40
+                  {questions.length}
                 </p>
 
               </div>
@@ -499,7 +499,7 @@ export default function Home() {
               <div className="space-y-2 text-sm text-slate-600">
 
                 <p>
-                  • 40 ta grammatika savoli
+                  • {questions.length} ta 語彙 savoli
                 </p>
 
                 <p>
@@ -507,15 +507,15 @@ export default function Home() {
                 </p>
 
                 <p>
-                  • Maksimal ball — 40
+                  • Maksimal ball — {questions.length}
                 </p>
 
                 <p>
-                  • O‘tish uchun kamida 28 ball / 70%
+                  • O‘tish uchun kamida 25 ball / 70%
                 </p>
 
                 <p>
-                  • Vaqt — 40 daqiqa
+                  • Vaqt — 15 daqiqa
                 </p>
 
                 <p>
@@ -622,7 +622,7 @@ export default function Home() {
                     : "text-red-600"
                 }`}
               >
-                {score}/40
+                {score}/{totalQuestions}
               </p>
 
               <p className="text-xl font-semibold text-slate-500 mt-2">
@@ -650,7 +650,7 @@ export default function Home() {
 
               <ResultRow
                 label="Maksimal ball"
-                value="40"
+                value={String(totalQuestions)}
               />
 
               <ResultRow
@@ -665,7 +665,7 @@ export default function Home() {
 
               <ResultRow
                 label="O‘tish bali"
-                value="28"
+                value={String(PASS_SCORE)}
               />
 
               <ResultRow
@@ -675,7 +675,7 @@ export default function Home() {
 
               <ResultRow
                 label="Noto‘g‘ri javoblar"
-                value={String(40 - score)}
+                value={String(totalQuestions - score)}
               />
 
               <ResultRow
@@ -699,8 +699,8 @@ export default function Home() {
               }`}
             >
               {passed
-                ? "Tabriklaymiz! Siz N3 grammatika testidan muvaffaqiyatli o'tdingiz."
-                : "Testdan o'tish uchun kamida 28/40 ball, ya'ni 70% olish kerak."}
+                ? "Tabriklaymiz! Siz N3 語彙 testidan muvaffaqiyatli o'tdingiz."
+                : "Testdan o'tish uchun kamida 25/35 ball, ya'ni 70% olish kerak."}
             </div>
 
           </div>
@@ -759,12 +759,6 @@ export default function Home() {
                         </span>
 
                       </div>
-
-                      {q.type === "star" && (
-                        <span className="px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold">
-                          ★ WORD ORDER
-                        </span>
-                      )}
 
                     </div>
 
@@ -828,7 +822,7 @@ export default function Home() {
 
           <div className="text-center mt-7 pb-8">
             <p className="text-xs text-slate-400">
-              {name} · N3 Grammar Examination
+              {name} · N3 Vocabulary Examination
             </p>
           </div>
 
@@ -877,7 +871,7 @@ export default function Home() {
               </p>
 
               <p className="font-bold text-slate-900">
-                Grammar Test
+                Vocabulary Test
               </p>
             </div>
 
@@ -887,7 +881,7 @@ export default function Home() {
               <b className="text-green-600">
                 {answeredCount}
               </b>
-              /40
+              /{totalQuestions}
             </div>
 
             {/* Timer */}
@@ -904,7 +898,7 @@ export default function Home() {
           </div>
 
           {/* =================================================
-              40 QUESTION NAVIGATION
+              QUESTION NAVIGATION
           ================================================= */}
 
           <div className="mt-3">
@@ -916,7 +910,7 @@ export default function Home() {
               </p>
 
               <p className="text-xs text-slate-400">
-                {answeredCount}/40 belgilangan
+                {answeredCount}/{totalQuestions} belgilangan
               </p>
 
             </div>
@@ -1043,30 +1037,22 @@ export default function Home() {
                 </p>
 
                 <p className="font-bold text-slate-900">
-                  {current + 1} / 40
+                  {current + 1} / {totalQuestions}
                 </p>
 
               </div>
 
             </div>
 
-            {question.type === "star" ? (
-              <span className="px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold">
-                ★ WORD ORDER
-              </span>
-            ) : (
-              <span className="px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold">
-                文法
-              </span>
-            )}
+            <span className="px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold">
+              語彙
+            </span>
 
           </div>
 
           {/* Instruction */}
           <p className="text-sm text-slate-500 mb-5">
-            {question.type === "star"
-              ? "★の位置に入る最も適切なものを選びなさい。"
-              : "次の文の（　）に入る最も適切なものを選びなさい。"}
+            次の問題の（　）に入る最も適切なものを選びなさい。
           </p>
 
           {/* Question */}
@@ -1190,7 +1176,7 @@ export default function Home() {
         <div className="mt-5 text-center">
 
           <p className="text-xs text-slate-400">
-            {answeredCount}/40 savolga javob berildi
+            {answeredCount}/{totalQuestions} savolga javob berildi
           </p>
 
         </div>
