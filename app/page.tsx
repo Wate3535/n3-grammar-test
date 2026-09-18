@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { questions, type Question } from "@/questions";
 
-const EXAM_TIME = 35 * 60;
+const EXAM_TIME = 40 * 60;
 const MAX_WARNINGS = 3;
-const PASS_SCORE = 25;
+const PASS_SCORE = 28;
 
 type ExamState = "start" | "exam" | "finished";
 
@@ -13,17 +13,12 @@ export default function Home() {
   const [state, setState] = useState<ExamState>("start");
 
   const [name, setName] = useState("");
-
   const [current, setCurrent] = useState(0);
-
-  const [answers, setAnswers] = useState<Record<string, number>>({});
-
+  const [answers, setAnswers] = useState<Record<number, number>>({});
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
 
   const [warnings, setWarnings] = useState(0);
-
   const [showWarning, setShowWarning] = useState(false);
-
   const [warningText, setWarningText] = useState("");
 
   // =========================================================
@@ -69,6 +64,19 @@ export default function Home() {
       : 0;
 
   const passed = score >= PASS_SCORE;
+
+  // =========================================================
+  // FORMAT TIME
+  // =========================================================
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+
+    return `${String(minutes).padStart(2, "0")}:${String(
+      secs
+    ).padStart(2, "0")}`;
+  };
 
   // =========================================================
   // WARNING
@@ -134,61 +142,65 @@ export default function Home() {
   }, [state, addWarning]);
 
   // =========================================================
-  // FULLSCREEN
+  // DISABLE COPY / RIGHT CLICK
   // =========================================================
 
   useEffect(() => {
     if (state !== "exam") return;
 
-    const handleFullscreen = () => {
-      if (!document.fullscreenElement) {
-        addWarning(
-          "Fullscreen rejimidan chiqdingiz."
-        );
-      }
+    const preventContext = (event: MouseEvent) => {
+      event.preventDefault();
+    };
+
+    const preventCopy = (event: ClipboardEvent) => {
+      event.preventDefault();
+    };
+
+    const preventCut = (event: ClipboardEvent) => {
+      event.preventDefault();
+    };
+
+    const preventPaste = (event: ClipboardEvent) => {
+      event.preventDefault();
     };
 
     document.addEventListener(
-      "fullscreenchange",
-      handleFullscreen
+      "contextmenu",
+      preventContext
     );
+
+    document.addEventListener("copy", preventCopy);
+    document.addEventListener("cut", preventCut);
+    document.addEventListener("paste", preventPaste);
 
     return () => {
       document.removeEventListener(
-        "fullscreenchange",
-        handleFullscreen
+        "contextmenu",
+        preventContext
       );
+
+      document.removeEventListener("copy", preventCopy);
+      document.removeEventListener("cut", preventCut);
+      document.removeEventListener("paste", preventPaste);
     };
-  }, [state, addWarning]);
+  }, [state]);
 
   // =========================================================
-  // KEYBOARD BLOCK
+  // KEYBOARD PROTECTION
   // =========================================================
 
   useEffect(() => {
     if (state !== "exam") return;
 
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyboard = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
 
       const blocked =
-        (event.ctrlKey && key === "c") ||
-        (event.ctrlKey && key === "v") ||
-        (event.ctrlKey && key === "x") ||
-        (event.ctrlKey && key === "a") ||
-        (event.ctrlKey && key === "u") ||
-        (event.ctrlKey && key === "s") ||
-        (event.ctrlKey && key === "p") ||
+        event.key === "F12" ||
         (event.ctrlKey &&
           event.shiftKey &&
-          key === "i") ||
-        (event.ctrlKey &&
-          event.shiftKey &&
-          key === "j") ||
-        (event.ctrlKey &&
-          event.shiftKey &&
-          key === "c") ||
-        event.key === "F12";
+          ["i", "j", "c"].includes(key)) ||
+        (event.ctrlKey && ["u", "s", "p"].includes(key));
 
       if (blocked) {
         event.preventDefault();
@@ -199,78 +211,17 @@ export default function Home() {
 
         setShowWarning(true);
       }
-
-      if (event.key === "PrintScreen") {
-        setWarningText(
-          "Screenshot funksiyasi aniqlandi. Test faoliyati qayd qilindi."
-        );
-
-        setShowWarning(true);
-
-        if (navigator.clipboard) {
-          navigator.clipboard
-            .writeText("")
-            .catch(() => {});
-        }
-      }
     };
 
     document.addEventListener(
       "keydown",
-      handleKeyDown
+      handleKeyboard
     );
 
     return () => {
       document.removeEventListener(
         "keydown",
-        handleKeyDown
-      );
-    };
-  }, [state]);
-
-  // =========================================================
-  // COPY / PASTE / RIGHT CLICK
-  // =========================================================
-
-  useEffect(() => {
-    if (state !== "exam") return;
-
-    const prevent = (event: Event) => {
-      event.preventDefault();
-    };
-
-    document.addEventListener("copy", prevent);
-    document.addEventListener("cut", prevent);
-    document.addEventListener("paste", prevent);
-    document.addEventListener(
-      "contextmenu",
-      prevent
-    );
-    document.addEventListener(
-      "dragstart",
-      prevent
-    );
-
-    return () => {
-      document.removeEventListener(
-        "copy",
-        prevent
-      );
-      document.removeEventListener(
-        "cut",
-        prevent
-      );
-      document.removeEventListener(
-        "paste",
-        prevent
-      );
-      document.removeEventListener(
-        "contextmenu",
-        prevent
-      );
-      document.removeEventListener(
-        "dragstart",
-        prevent
+        handleKeyboard
       );
     };
   }, [state]);
@@ -286,7 +237,6 @@ export default function Home() {
       setTimeLeft((previous) => {
         if (previous <= 1) {
           clearInterval(timer);
-
           setState("finished");
 
           if (document.fullscreenElement) {
@@ -300,74 +250,68 @@ export default function Home() {
       });
     }, 1000);
 
-    return () => {
-      clearInterval(timer);
-    };
+    return () => clearInterval(timer);
   }, [state]);
 
   // =========================================================
-  // START
+  // START EXAM
   // =========================================================
 
   const startExam = async () => {
     if (!name.trim()) {
-      setWarningText(
-        "Avval ism va familiyangizni kiriting."
-      );
-
-      setShowWarning(true);
-
+      alert("Ism va familiyangizni kiriting.");
       return;
     }
 
-    // RANDOM YO'Q
-    // questions.ts tartibi o'zgarmaydi.
-
+    // Savollar random emas.
+    // Barcha o'quvchilar bir xil tartibda ishlaydi.
     setExamQuestions([...questions]);
 
     setCurrent(0);
-
     setAnswers({});
-
     setWarnings(0);
-
     setTimeLeft(EXAM_TIME);
+
+    setState("exam");
 
     try {
       await document.documentElement.requestFullscreen();
     } catch {
       // Fullscreen ishlamasa ham test davom etadi.
     }
-
-    setState("exam");
   };
 
   // =========================================================
-  // SELECT ANSWER
+  // ANSWER
   // =========================================================
 
-  const selectAnswer = (answerIndex: number) => {
+  const selectAnswer = (optionIndex: number) => {
     if (!question) return;
 
     setAnswers((previous) => ({
       ...previous,
-      [question.id]: answerIndex,
+      [question.id]: optionIndex,
     }));
   };
 
   // =========================================================
-  // GO TO QUESTION
+  // FINISH
   // =========================================================
 
-  const goToQuestion = (index: number) => {
-    if (
-      index < 0 ||
-      index >= totalQuestions
-    ) {
-      return;
+  const finishExam = () => {
+    if (!allAnswered) {
+      const confirmFinish = window.confirm(
+        `${unansweredCount} ta savol javobsiz qolgan.\n\nTestni yakunlamoqchimisiz?`
+      );
+
+      if (!confirmFinish) return;
     }
 
-    setCurrent(index);
+    setState("finished");
+
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
   };
 
   // =========================================================
@@ -375,8 +319,6 @@ export default function Home() {
   // =========================================================
 
   const nextQuestion = () => {
-    if (!question) return;
-
     if (current < totalQuestions - 1) {
       setCurrent((previous) => previous + 1);
     }
@@ -393,41 +335,19 @@ export default function Home() {
   };
 
   // =========================================================
-  // FINISH
+  // RESTART
   // =========================================================
 
-  const finishExam = () => {
-    if (!allAnswered) {
-      setWarningText(
-        `Hali ${unansweredCount} ta savolga javob bermadingiz. Barcha ${totalQuestions} ta savolga javob bering.`
-      );
-
-      setShowWarning(true);
-
-      return;
-    }
-
-    setState("finished");
-
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
-    }
-  };
-
-  // =========================================================
-  // TIME FORMAT
-  // =========================================================
-
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
-
-    const secs = (seconds % 60)
-      .toString()
-      .padStart(2, "0");
-
-    return `${minutes}:${secs}`;
+  const restartExam = () => {
+    setState("start");
+    setName("");
+    setCurrent(0);
+    setAnswers({});
+    setExamQuestions([]);
+    setWarnings(0);
+    setShowWarning(false);
+    setWarningText("");
+    setTimeLeft(EXAM_TIME);
   };
 
   // =========================================================
@@ -436,404 +356,284 @@ export default function Home() {
 
   if (state === "start") {
     return (
-      <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <main className="min-h-screen bg-slate-50 py-10 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            {/* Header */}
 
-        <div className="w-full max-w-lg">
-
-          {/* Logo */}
-          <div className="text-center mb-7">
-
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 text-white text-xl font-black shadow-lg shadow-blue-600/20">
-              N3
-            </div>
-
-            <h1 className="mt-5 text-3xl font-bold text-slate-900">
-              N3 Vocabulary Test
-            </h1>
-
-            <p className="mt-2 text-slate-500">
-              JLPT N3 語彙試験
-            </p>
-
-          </div>
-
-          {/* Card */}
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-6 md:p-7">
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-
-                <p className="text-xs text-blue-600 font-semibold">
-                  SAVOLLAR
-                </p>
-
-                <p className="text-2xl font-bold text-blue-900 mt-1">
-                  {questions.length}
-                </p>
-
-              </div>
-
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-
-                <p className="text-xs text-blue-600 font-semibold">
-                  MAKSIMAL BALL
-                </p>
-
-                <p className="text-2xl font-bold text-blue-900 mt-1">
-                  {questions.length}
-                </p>
-
-              </div>
-
-            </div>
-
-            {/* Rules */}
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 mb-6">
-
-              <p className="font-bold text-slate-900 mb-3">
-                Test qoidalari
+            <div className="bg-blue-600 text-white px-6 py-8">
+              <p className="text-sm font-semibold opacity-90">
+                N3 日本語
               </p>
 
-              <div className="space-y-2 text-sm text-slate-600">
+              <h1 className="text-3xl font-bold mt-2">
+                漢字テスト
+              </h1>
 
-                <p>
-                  • {questions.length} ta 語彙 savoli
-                </p>
-
-                <p>
-                  • Har bir savol — 1 ball
-                </p>
-
-                <p>
-                  • Maksimal ball — {questions.length}
-                </p>
-
-                <p>
-                  • O‘tish uchun kamida 25 ball / 70%
-                </p>
-
-                <p>
-                  • Vaqt — 35 daqiqa
-                </p>
-
-                <p>
-                  • Savollar bir xil ketma-ketlikda
-                </p>
-
-                <p>
-                  • Istalgan savolga o&apos;tish mumkin
-                </p>
-
-                <p>
-                  • Test davomida boshqa tab yoki dasturga o&apos;tmang
-                </p>
-
-              </div>
-
+              <p className="mt-2 text-blue-100">
+                N3 Kanji — 40問
+              </p>
             </div>
 
-            {/* Name */}
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Ism va familiya
-            </label>
+            <div className="p-6">
+              {/* Info Cards */}
 
-            <input
-              value={name}
-              onChange={(event) =>
-                setName(event.target.value)
-              }
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  startExam();
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <InfoCard
+                  title="SAVOLLAR"
+                  value="40"
+                />
+
+                <InfoCard
+                  title="VAQT"
+                  value="40 min"
+                />
+
+                <InfoCard
+                  title="MAX BALL"
+                  value="40"
+                />
+
+                <InfoCard
+                  title="PASS"
+                  value="28 / 70%"
+                />
+              </div>
+
+              {/* Rules */}
+
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 mb-6">
+                <p className="font-bold text-slate-900 mb-3">
+                  Test qoidalari
+                </p>
+
+                <div className="space-y-2 text-sm text-slate-600">
+                  <p>• 40 ta 漢字 savoli</p>
+
+                  <p>• Har bir savol — 1 ball</p>
+
+                  <p>• Maksimal ball — 40</p>
+
+                  <p>
+                    • O‘tish uchun kamida 28 ball / 70%
+                  </p>
+
+                  <p>• Vaqt — 40 daqiqa</p>
+
+                  <p>
+                    • Savollar aralashtirilgan, lekin tartib
+                    barcha o‘quvchilar uchun bir xil
+                  </p>
+
+                  <p>
+                    • Istalgan savolga o‘tish mumkin
+                  </p>
+
+                  <p>
+                    • Test davomida boshqa tab yoki
+                    dasturga o‘tmang
+                  </p>
+
+                  <p>
+                    • 3 ta warningdan keyin test
+                    avtomatik yakunlanadi
+                  </p>
+                </div>
+              </div>
+
+              {/* Name */}
+
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Ism va familiya
+              </label>
+
+              <input
+                value={name}
+                onChange={(event) =>
+                  setName(event.target.value)
                 }
-              }}
-              placeholder="Masalan: Ali Valiyev"
-              className="w-full h-12 rounded-xl border border-slate-300 px-4 text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-            />
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    startExam();
+                  }
+                }}
+                placeholder="Masalan: Ali Valiyev"
+                className="w-full h-12 rounded-xl border border-slate-300 px-4 text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+              />
 
-            <button
-              onClick={startExam}
-              className="w-full h-12 mt-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition shadow-lg shadow-blue-600/20"
-            >
-              Testni boshlash
-            </button>
+              <button
+                onClick={startExam}
+                className="w-full h-12 mt-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition shadow-lg shadow-blue-600/20"
+              >
+                Testni boshlash
+              </button>
 
-            <p className="text-center text-xs text-slate-400 mt-5">
-              Test boshlangandan keyin vaqt hisoblanadi.
-            </p>
-
+              <p className="text-center text-xs text-slate-400 mt-5">
+                Test boshlangandan keyin vaqt hisoblanadi.
+              </p>
+            </div>
           </div>
-
         </div>
-
-        {showWarning && (
-          <WarningModal
-            text={warningText}
-            onClose={() =>
-              setShowWarning(false)
-            }
-          />
-        )}
-
       </main>
     );
   }
 
   // =========================================================
-  // FINISHED
+  // FINISHED SCREEN
   // =========================================================
 
   if (state === "finished") {
     return (
       <main className="min-h-screen bg-slate-50 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-blue-600 text-white px-6 py-8 text-center">
+              <p className="text-sm opacity-90">
+                N3 日本語
+              </p>
 
-        <div className="max-w-3xl mx-auto">
+              <h1 className="text-3xl font-bold mt-1">
+                漢字テスト 結果
+              </h1>
 
-          {/* Result */}
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-6 md:p-8">
-
-            <div
-              className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center text-2xl font-bold ${
-                passed
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-red-100 text-red-600"
-              }`}
-            >
-              {passed ? "✓" : "!"}
+              <p className="mt-2 text-blue-100">
+                {name}
+              </p>
             </div>
 
-            <p className="text-sm text-slate-500 text-center mt-5">
-              TEST YAKUNLANDI
-            </p>
+            <div className="p-6">
+              {/* Result */}
 
-            <h1 className="text-2xl font-bold text-slate-900 text-center mt-2">
-              {name}
-            </h1>
+              <div className="grid md:grid-cols-3 gap-4 mb-8">
+                <ResultCard
+                  title="BALL"
+                  value={`${score} / ${totalQuestions}`}
+                />
 
-            {/* Score */}
-            <div className="text-center mt-7">
+                <ResultCard
+                  title="FOIZ"
+                  value={`${percentage}%`}
+                />
 
-              <p
-                className={`text-6xl font-black ${
-                  passed
-                    ? "text-blue-600"
-                    : "text-red-600"
-                }`}
-              >
-                {score}/{totalQuestions}
-              </p>
-
-              <p className="text-xl font-semibold text-slate-500 mt-2">
-                {percentage}%
-              </p>
-
-              <div className="mt-4">
-
-                {passed ? (
-                  <span className="inline-flex px-5 py-2 rounded-full bg-blue-100 text-blue-700 font-black">
-                    ✓ TESTDAN O‘TDINGIZ
-                  </span>
-                ) : (
-                  <span className="inline-flex px-5 py-2 rounded-full bg-red-100 text-red-700 font-black">
-                    ✕ TESTDAN O‘TA OLMADINGIZ
-                  </span>
-                )}
-
+                <ResultCard
+                  title="NATIJA"
+                  value={passed ? "O‘TDI" : "O‘TMADI"}
+                  success={passed}
+                />
               </div>
 
-            </div>
+              {/* Status */}
 
-            {/* Summary */}
-            <div className="mt-7 bg-slate-50 rounded-xl p-5">
-
-              <ResultRow
-                label="Maksimal ball"
-                value={String(totalQuestions)}
-              />
-
-              <ResultRow
-                label="Sizning ballingiz"
-                value={String(score)}
-                valueClass={
+              <div
+                className={`rounded-xl p-5 mb-8 border ${
                   passed
-                    ? "text-blue-600"
-                    : "text-red-600"
-                }
-              />
+                    ? "bg-green-50 border-green-200"
+                    : "bg-red-50 border-red-200"
+                }`}
+              >
+                <p
+                  className={`font-bold text-lg ${
+                    passed
+                      ? "text-green-700"
+                      : "text-red-700"
+                  }`}
+                >
+                  {passed
+                    ? "🎉 Tabriklaymiz! Siz testdan o‘tdingiz."
+                    : "Testdan o‘ta olmadingiz."}
+                </p>
 
-              <ResultRow
-                label="O‘tish bali"
-                value={String(PASS_SCORE)}
-              />
+                <p className="text-sm text-slate-600 mt-2">
+                  O‘tish chegarasi: {PASS_SCORE} /{" "}
+                  {totalQuestions} ball (70%)
+                </p>
+              </div>
 
-              <ResultRow
-                label="To‘g‘ri javoblar"
-                value={String(score)}
-              />
+              {/* Question Analysis */}
 
-              <ResultRow
-                label="Noto‘g‘ri javoblar"
-                value={String(totalQuestions - score)}
-              />
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 mb-4">
+                  Javoblar tahlili
+                </h2>
 
-              <ResultRow
-                label="Ogohlantirishlar"
-                value={String(warnings)}
-                valueClass={
-                  warnings > 0
-                    ? "text-red-600"
-                    : "text-slate-900"
-                }
-              />
+                <div className="space-y-3">
+                  {examQuestions.map((q, index) => {
+                    const userAnswer =
+                      answers[q.id];
 
-            </div>
+                    const correct =
+                      userAnswer === q.answer;
 
-            {/* Message */}
-            <div
-              className={`mt-5 rounded-xl border p-4 text-center ${
-                passed
-                  ? "border-blue-200 bg-blue-50 text-blue-800"
-                  : "border-red-200 bg-red-50 text-red-800"
-              }`}
-            >
-              {passed
-                ? "Tabriklaymiz! Siz N3 語彙 testidan muvaffaqiyatli o'tdingiz."
-                : "Testdan o'tish uchun kamida 25/35 ball, ya'ni 70% olish kerak."}
-            </div>
+                    return (
+                      <div
+                        key={q.id}
+                        className={`rounded-xl border p-4 ${
+                          correct
+                            ? "border-green-200 bg-green-50"
+                            : "border-red-200 bg-red-50"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 ${
+                              correct
+                                ? "bg-green-600 text-white"
+                                : "bg-red-600 text-white"
+                            }`}
+                          >
+                            {index + 1}
+                          </div>
 
-          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-slate-900">
+                              {q.question}
+                            </p>
 
-          {/* Detailed answers */}
-          <div className="mt-7">
+                            <p className="text-sm mt-2">
+                              <span className="text-slate-500">
+                                Sizning javobingiz:
+                              </span>{" "}
+                              <span className="font-semibold">
+                                {userAnswer !== undefined
+                                  ? `${userAnswer + 1}. ${
+                                      q.options[
+                                        userAnswer
+                                      ]
+                                    }`
+                                  : "Javobsiz"}
+                              </span>
+                            </p>
 
-            <h2 className="text-xl font-bold text-slate-900 mb-4">
-              Javoblar tahlili
-            </h2>
-
-            <div className="space-y-4">
-
-              {examQuestions.map((q, index) => {
-
-                const userAnswer =
-                  answers[q.id];
-
-                const isCorrect =
-                  userAnswer === q.answer;
-
-                return (
-                  <div
-                    key={q.id}
-                    className={`bg-white rounded-2xl border-2 p-5 ${
-                      isCorrect
-                        ? "border-blue-100"
-                        : "border-red-100"
-                    }`}
-                  >
-
-                    <div className="flex items-center justify-between gap-3">
-
-                      <div className="flex items-center gap-3">
-
-                        <span
-                          className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold ${
-                            isCorrect
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {index + 1}
-                        </span>
-
-                        <span
-                          className={`text-sm font-bold ${
-                            isCorrect
-                              ? "text-blue-700"
-                              : "text-red-700"
-                          }`}
-                        >
-                          {isCorrect
-                            ? "✓ To‘g‘ri"
-                            : "✕ Noto‘g‘ri"}
-                        </span>
-
+                            {!correct && (
+                              <p className="text-sm mt-1 text-green-700 font-semibold">
+                                To‘g‘ri javob:{" "}
+                                {q.answer + 1}.{" "}
+                                {q.options[q.answer]}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
+                    );
+                  })}
+                </div>
+              </div>
 
-                    </div>
-
-                    <div className="mt-4 text-base md:text-lg leading-8 text-slate-900 whitespace-pre-line">
-                      {q.question}
-                    </div>
-
-                    {/* User */}
-                    <div className="mt-4 rounded-xl bg-slate-50 p-4">
-
-                      <p className="text-xs font-bold text-slate-500 uppercase">
-                        Sizning javobingiz
-                      </p>
-
-                      {userAnswer !== undefined ? (
-                        <p
-                          className={`mt-1 font-semibold ${
-                            isCorrect
-                              ? "text-blue-700"
-                              : "text-red-700"
-                          }`}
-                        >
-                          {String.fromCharCode(
-                            65 + userAnswer
-                          )}
-                          .{" "}
-                          {q.options[userAnswer]}
-                        </p>
-                      ) : (
-                        <p className="mt-1 text-red-600 font-semibold">
-                          Javob berilmagan
-                        </p>
-                      )}
-
-                    </div>
-
-                    {/* Correct */}
-                    <div className="mt-3 rounded-xl bg-blue-50 border border-blue-100 p-4">
-
-                      <p className="text-xs font-bold text-blue-600 uppercase">
-                        To‘g‘ri javob
-                      </p>
-
-                      <p className="mt-1 text-blue-900 font-semibold">
-                        {String.fromCharCode(
-                          65 + q.answer
-                        )}
-                        .{" "}
-                        {q.options[q.answer]}
-                      </p>
-
-                    </div>
-
-                  </div>
-                );
-              })}
-
+              <button
+                onClick={restartExam}
+                className="w-full h-12 mt-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition"
+              >
+                Testni qayta boshlash
+              </button>
             </div>
-
           </div>
-
-          <div className="text-center mt-7 pb-8">
-            <p className="text-xs text-slate-400">
-              {name} · N3 Vocabulary Examination
-            </p>
-          </div>
-
         </div>
-
       </main>
     );
   }
 
   // =========================================================
-  // EXAM
+  // EXAM SCREEN
   // =========================================================
 
   if (!question) {
@@ -842,452 +642,363 @@ export default function Home() {
 
   const selectedAnswer = answers[question.id];
 
-  const progress =
-    ((answeredCount / totalQuestions) * 100);
-
-  const isLowTime = timeLeft <= 5 * 60;
+  const timerDanger = timeLeft <= 5 * 60;
 
   return (
-    <main
-      className="min-h-screen bg-slate-50 select-none"
-      onContextMenu={(event) =>
-        event.preventDefault()
-      }
-    >
+    <main className="min-h-screen bg-slate-50">
+      {/* TOP BAR */}
 
-      {/* =====================================================
-          TOP HEADER
-      ===================================================== */}
-
-      <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
-
-        <div className="max-w-5xl mx-auto px-3 md:px-5 py-3">
-
-          <div className="flex items-center justify-between gap-3">
-
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold text-blue-600">
-                JLPT N3
+              <p className="text-xs text-slate-500">
+                N3 漢字
               </p>
 
               <p className="font-bold text-slate-900">
-                Vocabulary Test
+                {current + 1} / {totalQuestions}
               </p>
             </div>
 
-            {/* Answer progress */}
-            <div className="hidden sm:block text-sm text-slate-500">
-              Javob berildi:{" "}
-              <b className="text-green-600">
-                {answeredCount}
-              </b>
-              /{totalQuestions}
-            </div>
-
-            {/* Timer */}
             <div
-              className={`px-3 md:px-4 py-2 rounded-xl font-mono font-bold text-base md:text-lg ${
-                isLowTime
-                  ? "bg-red-100 text-red-700 border border-red-200"
-                  : "bg-blue-50 text-blue-700 border border-blue-100"
+              className={`px-5 py-2 rounded-xl font-mono font-bold text-lg ${
+                timerDanger
+                  ? "bg-red-100 text-red-700"
+                  : "bg-blue-50 text-blue-700"
               }`}
             >
               {formatTime(timeLeft)}
             </div>
 
-          </div>
-
-          {/* =================================================
-              QUESTION NAVIGATION
-          ================================================= */}
-
-          <div className="mt-3">
-
-            <div className="flex items-center justify-between mb-2">
-
-              <p className="text-xs font-bold text-slate-500">
-                SAVOLLAR
+            <div className="text-right">
+              <p className="text-xs text-slate-500">
+                Javob berilgan
               </p>
 
-              <p className="text-xs text-slate-400">
-                {answeredCount}/{totalQuestions} belgilangan
+              <p className="font-bold text-slate-900">
+                {answeredCount} / {totalQuestions}
               </p>
-
             </div>
-
-            <div className="grid grid-cols-10 gap-1.5 md:gap-2">
-
-              {examQuestions.map(
-                (q, index) => {
-
-                  const answered =
-                    answers[q.id] !== undefined;
-
-                  const active =
-                    current === index;
-
-                  return (
-                    <button
-                      key={q.id}
-                      onClick={() =>
-                        goToQuestion(index)
-                      }
-                      className={`
-                        h-8 md:h-9
-                        rounded-lg
-                        text-xs md:text-sm
-                        font-bold
-                        transition
-                        border
-                        ${
-                          active
-                            ? "bg-blue-600 text-white border-blue-600 ring-2 ring-blue-200"
-                            : answered
-                            ? "bg-green-500 text-white border-green-500 hover:bg-green-600"
-                            : "bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600"
-                        }
-                      `}
-                    >
-                      {index + 1}
-                    </button>
-                  );
-                }
-              )}
-
-            </div>
-
-            {/* Legend */}
-            <div className="flex items-center gap-4 mt-2 text-[11px] text-slate-400">
-
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-sm bg-blue-600" />
-                Hozirgi
-              </span>
-
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-sm bg-green-500" />
-                Belgilangan
-              </span>
-
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-sm border border-slate-300 bg-white" />
-                Bo‘sh
-              </span>
-
-            </div>
-
-            {/* Overall progress */}
-            <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-
-              <div
-                className="h-full bg-green-500 transition-all duration-300"
-                style={{
-                  width: `${progress}%`,
-                }}
-              />
-
-            </div>
-
           </div>
 
+          {/* Progress */}
+
+          <div className="h-2 bg-slate-100 rounded-full mt-3 overflow-hidden">
+            <div
+              className="h-full bg-blue-600 transition-all"
+              style={{
+                width: `${
+                  ((current + 1) / totalQuestions) *
+                  100
+                }%`,
+              }}
+            />
+          </div>
         </div>
-
       </header>
 
-      {/* =====================================================
-          MAIN CONTENT
-      ===================================================== */}
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="grid lg:grid-cols-[1fr_280px] gap-6">
+          {/* QUESTION */}
 
-      <div className="max-w-4xl mx-auto px-4 py-6 md:py-9">
-
-        {/* Student */}
-        <div className="flex items-center justify-between mb-5">
-
-          <span className="text-sm text-slate-500">
-            {name}
-          </span>
-
-          {warnings > 0 && (
-            <span className="text-red-600 font-bold text-sm">
-              ⚠ Warning: {warnings}/{MAX_WARNINGS}
-            </span>
-          )}
-
-        </div>
-
-        {/* ===================================================
-            QUESTION CARD
-        =================================================== */}
-
-        <section className="bg-white border border-slate-200 rounded-2xl shadow-lg shadow-slate-200/50 p-5 md:p-9">
-
-          {/* Number */}
-          <div className="flex items-center justify-between mb-5">
-
-            <div className="flex items-center gap-3">
-
-              <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-lg">
+          <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
                 {current + 1}
               </div>
 
               <div>
-
-                <p className="text-xs text-slate-400">
-                  SAVOL
+                <p className="text-xs text-slate-500">
+                  問題
                 </p>
 
-                <p className="font-bold text-slate-900">
-                  {current + 1} / {totalQuestions}
+                <p className="font-semibold text-slate-800">
+                  Eng yaxshi javobni tanlang
                 </p>
-
               </div>
-
             </div>
 
-            <span className="px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold">
-              語彙
-            </span>
+            {/* Question text */}
 
-          </div>
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-6 mb-6">
+              <p className="text-xl md:text-2xl font-bold text-slate-900 leading-relaxed">
+                {question.question}
+              </p>
+            </div>
 
-          {/* Instruction */}
-          <p className="text-sm text-slate-500 mb-5">
-            次の問題の（　）に入る最も適切なものを選びなさい。
-          </p>
+            {/* Options */}
 
-          {/* Question */}
-          <div className="text-lg md:text-xl leading-[2] font-medium text-slate-900 whitespace-pre-line">
-            {question.question}
-          </div>
+            <div className="space-y-3">
+              {question.options.map(
+                (option, optionIndex) => {
+                  const selected =
+                    selectedAnswer === optionIndex;
 
-          {/* =================================================
-              OPTIONS
-          ================================================= */}
+                  return (
+                    <button
+                      key={optionIndex}
+                      onClick={() =>
+                        selectAnswer(optionIndex)
+                      }
+                      className={`w-full text-left rounded-xl border-2 p-4 transition ${
+                        selected
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40"
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`w-9 h-9 rounded-full flex items-center justify-center font-bold shrink-0 ${
+                            selected
+                              ? "bg-blue-600 text-white"
+                              : "bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          {optionIndex + 1}
+                        </div>
 
-          <div className="mt-8 space-y-3">
+                        <span className="text-lg text-slate-900">
+                          {option}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                }
+              )}
+            </div>
 
-            {question.options.map(
-              (option, index) => {
+            {/* Navigation */}
 
-                const selected =
-                  selectedAnswer === index;
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={previousQuestion}
+                disabled={current === 0}
+                className="flex-1 h-12 rounded-xl border border-slate-300 font-semibold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+              >
+                ← Oldingi
+              </button>
+
+              {current === totalQuestions - 1 ? (
+                <button
+                  onClick={finishExam}
+                  className="flex-1 h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold"
+                >
+                  Testni yakunlash
+                </button>
+              ) : (
+                <button
+                  onClick={nextQuestion}
+                  className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                >
+                  Keyingi →
+                </button>
+              )}
+            </div>
+          </section>
+
+          {/* QUESTION NAVIGATION */}
+
+          <aside className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 h-fit lg:sticky lg:top-28">
+            <h2 className="font-bold text-slate-900 mb-4">
+              Savollar
+            </h2>
+
+            <div className="grid grid-cols-5 gap-2">
+              {examQuestions.map((q, index) => {
+                const answered =
+                  answers[q.id] !== undefined;
+
+                const active = index === current;
 
                 return (
                   <button
-                    key={`${question.id}-${index}`}
-                    onClick={() =>
-                      selectAnswer(index)
-                    }
-                    className={`w-full text-left rounded-xl border-2 px-4 py-4 transition ${
-                      selected
-                        ? "border-blue-600 bg-blue-50 shadow-sm"
-                        : "border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/30"
+                    key={q.id}
+                    onClick={() => setCurrent(index)}
+                    className={`h-10 rounded-lg text-sm font-bold border transition ${
+                      active
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : answered
+                        ? "bg-green-100 text-green-700 border-green-200"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
                     }`}
                   >
-
-                    <div className="flex items-center gap-4">
-
-                      <span
-                        className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center font-bold ${
-                          selected
-                            ? "bg-blue-600 text-white"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {String.fromCharCode(
-                          65 + index
-                        )}
-                      </span>
-
-                      <span className="text-base md:text-lg text-slate-900">
-                        {option}
-                      </span>
-
-                    </div>
-
+                    {index + 1}
                   </button>
                 );
-              }
-            )}
+              })}
+            </div>
 
-          </div>
+            <div className="mt-5 space-y-2 text-xs text-slate-500">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded bg-blue-600" />
+                <span>Hozirgi savol</span>
+              </div>
 
-          {/* =================================================
-              NAVIGATION BUTTONS
-          ================================================= */}
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded bg-green-100 border border-green-200" />
+                <span>Javob berilgan</span>
+              </div>
 
-          <div className="mt-8 flex gap-3">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded bg-white border border-slate-200" />
+                <span>Javobsiz</span>
+              </div>
+            </div>
 
-            <button
-              onClick={previousQuestion}
-              disabled={current === 0}
-              className="px-5 py-3.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:border-blue-300 transition"
-            >
-              ←
-            </button>
+            <div className="mt-5 pt-5 border-t border-slate-200">
+              <p className="text-xs text-slate-500">
+                Warning
+              </p>
 
-            {current < totalQuestions - 1 ? (
-              <button
-                onClick={nextQuestion}
-                className="flex-1 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition shadow-lg shadow-blue-600/20"
+              <p
+                className={`font-bold ${
+                  warnings >= 2
+                    ? "text-red-600"
+                    : "text-slate-800"
+                }`}
               >
-                Keyingi savol →
-              </button>
-            ) : allAnswered ? (
-              <button
-                onClick={finishExam}
-                className="flex-1 py-3.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-black transition shadow-lg shadow-green-600/20"
-              >
-                ✓ TESTNI YAKUNLASH
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  setWarningText(
-                    `Testni yakunlash uchun yana ${unansweredCount} ta savolga javob bering.`
-                  );
-
-                  setShowWarning(true);
-                }}
-                className="flex-1 py-3.5 rounded-xl bg-slate-200 text-slate-500 font-bold cursor-not-allowed"
-              >
-                {unansweredCount} ta savol qoldi
-              </button>
-            )}
-
-          </div>
-
-          {/* Finish button can also appear on ANY question */}
-          {allAnswered && (
-            <button
-              onClick={finishExam}
-              className="w-full mt-3 py-3 rounded-xl border-2 border-green-500 bg-green-50 text-green-700 hover:bg-green-100 font-bold transition"
-            >
-              ✓ Barcha savollar belgilangan — Testni yakunlash
-            </button>
-          )}
-
-        </section>
-
-        {/* ===================================================
-            MOBILE STATUS
-        =================================================== */}
-
-        <div className="mt-5 text-center">
-
-          <p className="text-xs text-slate-400">
-            {answeredCount}/{totalQuestions} savolga javob berildi
-          </p>
-
+                {warnings} / {MAX_WARNINGS}
+              </p>
+            </div>
+          </aside>
         </div>
-
       </div>
 
-      {/* =====================================================
-          WATERMARK
-      ===================================================== */}
+      {/* WARNING MODAL */}
 
-      <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden opacity-[0.035]">
-
-        <div className="absolute inset-0 flex items-center justify-center">
-
-          <p className="text-5xl md:text-7xl font-black rotate-[-25deg] whitespace-nowrap">
-            {name} · N3 EXAM
-          </p>
-
-        </div>
-
-      </div>
-
-      {/* WARNING */}
       {showWarning && (
         <WarningModal
           text={warningText}
-          onClose={() =>
-            setShowWarning(false)
-          }
+          warnings={warnings}
+          maxWarnings={MAX_WARNINGS}
+          onClose={() => setShowWarning(false)}
         />
       )}
-
     </main>
   );
 }
 
-// ===========================================================
-// RESULT ROW
-// ===========================================================
+// =========================================================
+// INFO CARD
+// =========================================================
 
-function ResultRow({
-  label,
+function InfoCard({
+  title,
   value,
-  valueClass = "text-slate-900",
 }: {
-  label: string;
+  title: string;
   value: string;
-  valueClass?: string;
 }) {
   return (
-    <div className="flex justify-between py-2">
+    <div className="rounded-xl bg-blue-50 border border-blue-100 p-4">
+      <p className="text-xs text-blue-600 font-semibold">
+        {title}
+      </p>
 
-      <span className="text-slate-500">
-        {label}
-      </span>
-
-      <b className={valueClass}>
+      <p className="text-xl font-bold text-blue-900 mt-1">
         {value}
-      </b>
-
+      </p>
     </div>
   );
 }
 
-// ===========================================================
+// =========================================================
+// RESULT CARD
+// =========================================================
+
+function ResultCard({
+  title,
+  value,
+  success = false,
+}: {
+  title: string;
+  value: string;
+  success?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border p-5 ${
+        success
+          ? "bg-green-50 border-green-200"
+          : "bg-slate-50 border-slate-200"
+      }`}
+    >
+      <p className="text-xs text-slate-500 font-semibold">
+        {title}
+      </p>
+
+      <p
+        className={`text-2xl font-bold mt-1 ${
+          success
+            ? "text-green-700"
+            : "text-slate-900"
+        }`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+// =========================================================
 // WARNING MODAL
-// ===========================================================
+// =========================================================
 
 function WarningModal({
   text,
+  warnings,
+  maxWarnings,
   onClose,
 }: {
   text: string;
+  warnings: number;
+  maxWarnings: number;
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[100] bg-red-950/70 backdrop-blur-sm flex items-center justify-center p-5">
+    <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-red-600 text-white px-6 py-5">
+          <p className="text-sm font-semibold">
+            DIQQAT!
+          </p>
 
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-red-600">
-
-        {/* Header */}
-        <div className="bg-red-600 text-white px-6 py-5 text-center">
-
-          <div className="w-14 h-14 mx-auto rounded-full bg-white/20 flex items-center justify-center text-3xl font-black mb-3">
-            !
-          </div>
-
-          <h2 className="text-2xl font-black">
-            OGOHLANTIRISH
+          <h2 className="text-2xl font-bold mt-1">
+            Test qoidasi buzildi
           </h2>
-
         </div>
 
-        {/* Body */}
-        <div className="p-6 text-center">
-
+        <div className="p-6">
           <p className="text-slate-700 leading-relaxed">
             {text}
           </p>
 
-          <button
-            onClick={onClose}
-            className="w-full mt-6 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition"
-          >
-            Testga qaytish
-          </button>
+          <div className="mt-5 rounded-xl bg-red-50 border border-red-200 p-4">
+            <p className="text-sm text-red-600">
+              Warning
+            </p>
 
+            <p className="text-xl font-bold text-red-700">
+              {warnings} / {maxWarnings}
+            </p>
+          </div>
+
+          {warnings >= maxWarnings ? (
+            <p className="mt-4 text-sm font-semibold text-red-600">
+              3 ta warning olindi. Test avtomatik
+              yakunlanadi.
+            </p>
+          ) : (
+            <button
+              onClick={onClose}
+              className="w-full h-11 mt-5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold"
+            >
+              Tushundim
+            </button>
+          )}
         </div>
-
       </div>
-
     </div>
   );
 }
