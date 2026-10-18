@@ -1,55 +1,81 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { questions, type Question } from "@/questions";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  questions,
+  type GlossaryItem,
+  type Question,
+  type SectionId,
+} from "@/questions";
 
 // =========================================================
 // JFT-BASIC A2 SETTINGS
+// Rasmiy format: ~50 savol, 60 daqiqa, 4 section.
+// Istalgan section va savolga erkin o'tish mumkin.
+// 聴解 da har bir audio 2 martagacha eshitiladi.
 // =========================================================
 
 const EXAM_TIME = 60 * 60; // 60 minutes
 const MAX_WARNINGS = 3;
+const MAX_PLAYS = 2;
+const PASS_SCORE = 200;
 
 type ExamState = "start" | "exam" | "finished";
 
 type Section = {
-  id: number;
+  id: SectionId;
   title: string;
   subtitle: string;
+  types: string;
   start: number;
   end: number;
 };
 
-const SECTIONS: Section[] = [
+const SECTION_META: Omit<Section, "start" | "end">[] = [
   {
     id: 1,
     title: "文字と語彙",
     subtitle: "So‘z va lug‘at",
-    start: 1,
-    end: 10,
+    types: "語の意味 · 語の使い方 · 漢字の読み · 漢字の意味と使い方",
   },
   {
     id: 2,
     title: "会話と表現",
     subtitle: "Suhbat va ifodalar",
-    start: 11,
-    end: 28,
+    types: "文法 · 表現",
   },
   {
     id: 3,
     title: "聴解",
     subtitle: "Tinglab tushunish",
-    start: 29,
-    end: 35,
+    types: "会話 · 店・公共の場所 · アナウンス・指示",
   },
   {
     id: 4,
     title: "読解",
     subtitle: "O‘qib tushunish",
-    start: 36,
-    end: 40,
+    types: "内容理解 · 情報検索",
   },
 ];
+
+const SECTIONS: Section[] = SECTION_META.map((meta) => {
+  const numbers = questions
+    .map((q, index) => (q.section === meta.id ? index + 1 : 0))
+    .filter((n) => n > 0);
+
+  return {
+    ...meta,
+    start: numbers[0],
+    end: numbers[numbers.length - 1],
+  };
+});
 
 // =========================================================
 // HELPERS
@@ -67,6 +93,35 @@ function getSectionByQuestionNumber(
   );
 }
 
+// JFT-Basic 10–250 ball shkalasi (taxminiy, chiziqli).
+function toScaledScore(correct: number, total: number) {
+  if (total === 0) return 10;
+  return Math.round(10 + (240 * correct) / total);
+}
+
+function getLevel(scaled: number) {
+  if (scaled >= 200) return "A2";
+  if (scaled >= 175) return "A2.1";
+  if (scaled >= 145) return "A1";
+  return "—";
+}
+
+// "＿電車＿" → tagiga chizilgan so‘z
+function renderMarked(text: string): ReactNode {
+  return text.split("＿").map((part, index) =>
+    index % 2 === 1 ? (
+      <span
+        key={index}
+        className="underline decoration-2 underline-offset-4 decoration-blue-600"
+      >
+        {part}
+      </span>
+    ) : (
+      <span key={index}>{part}</span>
+    )
+  );
+}
+
 // =========================================================
 // MAIN
 // =========================================================
@@ -77,17 +132,15 @@ export default function Home() {
   const [name, setName] = useState("");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [plays, setPlays] = useState<Record<number, number>>({});
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
 
   const [warnings, setWarnings] = useState(0);
   const [showWarning, setShowWarning] = useState(false);
   const [warningText, setWarningText] = useState("");
 
-  const [examQuestions, setExamQuestions] =
-    useState<Question[]>([]);
-
-  const totalQuestions = examQuestions.length;
-  const question = examQuestions[current];
+  const totalQuestions = questions.length;
+  const question = questions[current];
 
   // =========================================================
   // CURRENT SECTION
@@ -97,52 +150,53 @@ export default function Home() {
     return getSectionByQuestionNumber(current + 1);
   }, [current]);
 
+  const isLastQuestion = current + 1 === questions.length;
+
+  const canGoBack = current > 0;
+
   // =========================================================
   // ANSWERED COUNT
   // =========================================================
 
   const answeredCount = useMemo(() => {
-    return examQuestions.filter(
+    return questions.filter(
       (q) => answers[q.id] !== undefined
     ).length;
-  }, [answers, examQuestions]);
+  }, [answers]);
 
   const unansweredCount =
     totalQuestions - answeredCount;
-
-  const allAnswered =
-    totalQuestions > 0 &&
-    answeredCount === totalQuestions;
 
   // =========================================================
   // SCORE
   // =========================================================
 
   const score = useMemo(() => {
-    return examQuestions.reduce((total, q) => {
+    return questions.reduce((total, q) => {
       return total + (answers[q.id] === q.answer ? 1 : 0);
     }, 0);
-  }, [answers, examQuestions]);
+  }, [answers]);
 
   const percentage =
     totalQuestions > 0
       ? Math.round((score / totalQuestions) * 100)
       : 0;
 
+  const scaledScore = toScaledScore(score, totalQuestions);
+  const level = getLevel(scaledScore);
+  const passed = scaledScore >= PASS_SCORE;
+
   // =========================================================
   // SECTION STATISTICS
   // =========================================================
 
-  const getSectionAnsweredCount = (section: Section) => {
-    return examQuestions.filter((q, index) => {
-      const number = index + 1;
+  const getSectionQuestions = (section: Section) =>
+    questions.filter((q) => q.section === section.id);
 
-      return (
-        number >= section.start &&
-        number <= section.end &&
-        answers[q.id] !== undefined
-      );
-    }).length;
+  const getSectionAnsweredCount = (section: Section) => {
+    return getSectionQuestions(section).filter(
+      (q) => answers[q.id] !== undefined
+    ).length;
   };
 
   // =========================================================
@@ -157,6 +211,22 @@ export default function Home() {
       secs
     ).padStart(2, "0")}`;
   };
+
+  // =========================================================
+  // END EXAM
+  // =========================================================
+
+  const endExam = useCallback(() => {
+    setState("finished");
+
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }, []);
 
   // =========================================================
   // WARNING
@@ -179,20 +249,14 @@ export default function Home() {
         if (next >= MAX_WARNINGS) {
           setTimeout(() => {
             setShowWarning(false);
-            setState("finished");
-
-            if (document.fullscreenElement) {
-              document
-                .exitFullscreen()
-                .catch(() => {});
-            }
+            endExam();
           }, 1800);
         }
 
         return next;
       });
     },
-    [state]
+    [state, endExam]
   );
 
   // =========================================================
@@ -230,61 +294,19 @@ export default function Home() {
   useEffect(() => {
     if (state !== "exam") return;
 
-    const preventContext = (event: MouseEvent) => {
+    const prevent = (event: Event) => {
       event.preventDefault();
     };
 
-    const preventCopy = (event: ClipboardEvent) => {
-      event.preventDefault();
-    };
+    const events = ["contextmenu", "copy", "cut", "paste"];
 
-    const preventCut = (event: ClipboardEvent) => {
-      event.preventDefault();
-    };
-
-    const preventPaste = (event: ClipboardEvent) => {
-      event.preventDefault();
-    };
-
-    document.addEventListener(
-      "contextmenu",
-      preventContext
-    );
-
-    document.addEventListener(
-      "copy",
-      preventCopy
-    );
-
-    document.addEventListener(
-      "cut",
-      preventCut
-    );
-
-    document.addEventListener(
-      "paste",
-      preventPaste
+    events.forEach((type) =>
+      document.addEventListener(type, prevent)
     );
 
     return () => {
-      document.removeEventListener(
-        "contextmenu",
-        preventContext
-      );
-
-      document.removeEventListener(
-        "copy",
-        preventCopy
-      );
-
-      document.removeEventListener(
-        "cut",
-        preventCut
-      );
-
-      document.removeEventListener(
-        "paste",
-        preventPaste
+      events.forEach((type) =>
+        document.removeEventListener(type, prevent)
       );
     };
   }, [state]);
@@ -344,15 +366,7 @@ export default function Home() {
       setTimeLeft((previous) => {
         if (previous <= 1) {
           clearInterval(timer);
-
-          setState("finished");
-
-          if (document.fullscreenElement) {
-            document
-              .exitFullscreen()
-              .catch(() => {});
-          }
-
+          endExam();
           return 0;
         }
 
@@ -361,7 +375,7 @@ export default function Home() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [state]);
+  }, [state, endExam]);
 
   // =========================================================
   // START EXAM
@@ -373,12 +387,9 @@ export default function Home() {
       return;
     }
 
-    // Savollar random emas.
-    // Barcha o'quvchilar bir xil tartibda ishlaydi.
-    setExamQuestions([...questions]);
-
     setCurrent(0);
     setAnswers({});
+    setPlays({});
     setWarnings(0);
     setTimeLeft(EXAM_TIME);
 
@@ -404,68 +415,55 @@ export default function Home() {
     }));
   };
 
-  // =========================================================
-  // FINISH
-  // =========================================================
-
-  const finishExam = () => {
-    if (!allAnswered) {
-      const confirmFinish = window.confirm(
-        `${unansweredCount} ta savol javobsiz qolgan.\n\nTestni yakunlamoqchimisiz?`
-      );
-
-      if (!confirmFinish) return;
-    }
-
-    setState("finished");
-
-    if (document.fullscreenElement) {
-      document
-        .exitFullscreen()
-        .catch(() => {});
-    }
+  const registerPlay = (questionId: number) => {
+    setPlays((previous) => ({
+      ...previous,
+      [questionId]: (previous[questionId] ?? 0) + 1,
+    }));
   };
 
   // =========================================================
-  // NEXT
+  // NAVIGATION
   // =========================================================
 
-  const nextQuestion = () => {
-    if (current < totalQuestions - 1) {
-      setCurrent((previous) => previous + 1);
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  // =========================================================
-  // PREVIOUS
-  // =========================================================
-
-  const previousQuestion = () => {
-    if (current > 0) {
-      setCurrent((previous) => previous - 1);
-
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  // =========================================================
-  // GO TO QUESTION
-  // =========================================================
-
+  // Istalgan section va savolga erkin o'tish mumkin.
   const goToQuestion = (index: number) => {
+    if (index < 0 || index >= totalQuestions) return;
+
     setCurrent(index);
 
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
+  };
+
+  const nextQuestion = () => {
+    goToQuestion(current + 1);
+  };
+
+  const previousQuestion = () => {
+    goToQuestion(current - 1);
+  };
+
+  const goToSection = (section: Section) => {
+    goToQuestion(section.start - 1);
+  };
+
+  // =========================================================
+  // FINISH
+  // =========================================================
+
+  const finishExam = () => {
+    const message =
+      (unansweredCount > 0
+        ? `${unansweredCount} ta savol javobsiz qolgan.\n`
+        : "") +
+      "\nTestni yakunlamoqchimisiz?";
+
+    if (!window.confirm(message)) return;
+
+    endExam();
   };
 
   // =========================================================
@@ -477,7 +475,7 @@ export default function Home() {
     setName("");
     setCurrent(0);
     setAnswers({});
-    setExamQuestions([]);
+    setPlays({});
     setWarnings(0);
     setShowWarning(false);
     setWarningText("");
@@ -501,11 +499,11 @@ export default function Home() {
               </p>
 
               <h1 className="text-3xl font-bold mt-2">
-                日本語基礎テスト
+                国際交流基金日本語基礎テスト
               </h1>
 
               <p className="mt-2 text-blue-100">
-                JFT-Basic A2 — 40問 Mock Test
+                JFT-Basic A2 — {totalQuestions}問 Mock Test
               </p>
             </div>
 
@@ -515,7 +513,7 @@ export default function Home() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 <InfoCard
                   title="SAVOLLAR"
-                  value="40"
+                  value={String(totalQuestions)}
                 />
 
                 <InfoCard
@@ -525,12 +523,12 @@ export default function Home() {
 
                 <InfoCard
                   title="SECTION"
-                  value="4"
+                  value={String(SECTIONS.length)}
                 />
 
                 <InfoCard
-                  title="FORMAT"
-                  value="A2"
+                  title="O‘TISH BALI"
+                  value={`${PASS_SCORE} / 250`}
                 />
               </div>
 
@@ -548,11 +546,11 @@ export default function Home() {
                       className="rounded-xl border border-slate-200 bg-slate-50 p-4"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
+                        <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
                           {section.id}
                         </div>
 
-                        <div>
+                        <div className="min-w-0">
                           <p className="font-bold text-slate-900">
                             {section.title}
                           </p>
@@ -561,6 +559,10 @@ export default function Home() {
                             {section.subtitle} ·{" "}
                             {section.start}–
                             {section.end}
+                          </p>
+
+                          <p className="text-[11px] text-slate-400 mt-1">
+                            {section.types}
                           </p>
                         </div>
                       </div>
@@ -578,47 +580,37 @@ export default function Home() {
 
                 <div className="space-y-2 text-sm text-slate-600">
                   <p>
-                    • Jami 40 ta savol
+                    • Jami {totalQuestions} ta savol, 4 ta section
                   </p>
 
                   <p>
-                    • 4 ta section mavjud
+                    • Umumiy vaqt — 60 daqiqa (barcha sectionlar
+                    uchun umumiy)
                   </p>
 
                   <p>
-                    • Umumiy vaqt — 60 daqiqa
+                    • Istalgan section va savolga erkin o&apos;tish,
+                    javobni istalgan vaqtda o&apos;zgartirish mumkin
                   </p>
 
                   <p>
-                    • Vaqt barcha 4 section uchun
-                    umumiy hisoblanadi
+                    • 聴解 (tinglash) bo&apos;limida har bir audioni
+                    faqat {MAX_PLAYS} marta eshitish mumkin
                   </p>
 
                   <p>
-                    • Istalgan savolga o&apos;tish mumkin
-                  </p>
-
-                  <p>
-                    • Javobni o&apos;zgartirish mumkin
-                  </p>
-
-                  <p>
-                    • 29–35-savollarda audio mavjud
-                  </p>
-
-                  <p>
-                    • Test oxirida javoblar
-                    tahlili ko&apos;rsatiladi
+                    • Natija 10–250 ball shkalasida ko&apos;rsatiladi,{" "}
+                    {PASS_SCORE} va undan yuqori — A2
                   </p>
 
                   <p>
                     • Test davomida boshqa tab yoki
-                    dasturga o&apos;tmang
+                    dasturga o&apos;tmang — 3 ta warningdan
+                    keyin test avtomatik yakunlanadi
                   </p>
 
                   <p>
-                    • 3 ta warningdan keyin test
-                    avtomatik yakunlanadi
+                    • Quloqchin (naushnik) tayyorlang
                   </p>
                 </div>
               </div>
@@ -689,9 +681,19 @@ export default function Home() {
             <div className="p-6">
               {/* RESULT CARDS */}
 
-              <div className="grid md:grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <ResultCard
-                  title="BALL"
+                  title="BALL (10–250)"
+                  value={String(scaledScore)}
+                />
+
+                <ResultCard
+                  title="DARAJA"
+                  value={level}
+                />
+
+                <ResultCard
+                  title="TO‘G‘RI"
                   value={`${score} / ${totalQuestions}`}
                 />
 
@@ -699,11 +701,35 @@ export default function Home() {
                   title="FOIZ"
                   value={`${percentage}%`}
                 />
+              </div>
 
-                <ResultCard
-                  title="JAVOBLAR"
-                  value={`${answeredCount} / ${totalQuestions}`}
-                />
+              {/* STATUS */}
+
+              <div
+                className={`rounded-xl border p-5 mb-8 ${
+                  passed
+                    ? "bg-green-50 border-green-200"
+                    : "bg-red-50 border-red-200"
+                }`}
+              >
+                <p
+                  className={`font-bold text-lg ${
+                    passed
+                      ? "text-green-700"
+                      : "text-red-700"
+                  }`}
+                >
+                  {passed
+                    ? "合格 — A2 darajasi yetarli"
+                    : "不合格 — A2 uchun yetarli emas"}
+                </p>
+
+                <p className="text-sm text-slate-600 mt-2">
+                  O‘tish bali: {PASS_SCORE} / 250. Javoblar:{" "}
+                  {answeredCount} / {totalQuestions}. Ball
+                  taxminiy hisoblanadi — rasmiy JFT-Basic
+                  savollarning qiyinligiga qarab ball beradi.
+                </p>
               </div>
 
               {/* SECTION RESULTS */}
@@ -716,30 +742,12 @@ export default function Home() {
                 <div className="grid md:grid-cols-2 gap-3">
                   {SECTIONS.map((section) => {
                     const sectionQuestions =
-                      examQuestions.filter(
-                        (_, index) => {
-                          const number = index + 1;
-
-                          return (
-                            number >= section.start &&
-                            number <= section.end
-                          );
-                        }
-                      );
+                      getSectionQuestions(section);
 
                     const sectionScore =
-                      sectionQuestions.reduce(
-                        (total, q) => {
-                          return (
-                            total +
-                            (answers[q.id] ===
-                            q.answer
-                              ? 1
-                              : 0)
-                          );
-                        },
-                        0
-                      );
+                      sectionQuestions.filter(
+                        (q) => answers[q.id] === q.answer
+                      ).length;
 
                     const sectionTotal =
                       sectionQuestions.length;
@@ -781,24 +789,19 @@ export default function Home() {
                             </p>
                           </div>
                         </div>
+
+                        <div className="h-2 bg-slate-200 rounded-full mt-3 overflow-hidden">
+                          <div
+                            className="h-full bg-blue-600"
+                            style={{
+                              width: `${sectionPercentage}%`,
+                            }}
+                          />
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-              </div>
-
-              {/* STATUS */}
-
-              <div className="rounded-xl bg-blue-50 border border-blue-200 p-5 mb-8">
-                <p className="font-bold text-lg text-blue-700">
-                  Test yakunlandi
-                </p>
-
-                <p className="text-sm text-slate-600 mt-2">
-                  Quyida barcha savollar bo‘yicha
-                  sizning javobingiz va to‘g‘ri javob
-                  ko‘rsatilgan.
-                </p>
               </div>
 
               {/* ANSWER ANALYSIS */}
@@ -809,7 +812,7 @@ export default function Home() {
                 </h2>
 
                 <div className="space-y-3">
-                  {examQuestions.map((q, index) => {
+                  {questions.map((q, index) => {
                     const userAnswer =
                       answers[q.id];
 
@@ -821,7 +824,10 @@ export default function Home() {
                         index + 1
                       );
 
-                    const audioSrc = q.audio ?? null;
+                    const showPassage =
+                      q.passage &&
+                      q.passage !==
+                        questions[index - 1]?.passage;
 
                     return (
                       <div
@@ -849,14 +855,12 @@ export default function Home() {
                                 {section.title}
                               </span>
 
-                              {audioSrc && (
-                                <span className="text-xs font-semibold px-2 py-1 rounded-md bg-blue-100 text-blue-700">
-                                  🔊 聴解
-                                </span>
-                              )}
+                              <span className="text-xs font-semibold px-2 py-1 rounded-md bg-white border border-slate-200 text-slate-500">
+                                {q.type}
+                              </span>
                             </div>
 
-                            {q.passage && (
+                            {showPassage && (
                               <div className="rounded-xl bg-white border border-slate-200 p-4 mb-4">
                                 <p className="text-sm md:text-base text-slate-800 leading-7 whitespace-pre-line">
                                   {q.passage}
@@ -864,49 +868,98 @@ export default function Home() {
                               </div>
                             )}
 
+                            {q.image && (
+                              <p className="text-5xl mb-2">
+                                {q.image}
+                              </p>
+                            )}
+
                             <p className="font-semibold text-slate-900 leading-relaxed whitespace-pre-line">
-                              {q.question}
+                              {renderMarked(q.question)}
                             </p>
 
-                            {/* AUDIO IN RESULT */}
+                            {/* LISTENING IN RESULT */}
 
-                            {audioSrc && (
-                              <div className="mt-4">
-                                <audio
-                                  controls
-                                  preload="none"
-                                  className="w-full max-w-xl"
-                                  src={audioSrc}
+                            {(q.script || q.audio) && (
+                              <div className="mt-4 space-y-3">
+                                <ListeningPlayer
+                                  key={q.id}
+                                  question={q}
+                                  playsUsed={0}
+                                  maxPlays={null}
+                                  onPlay={() => {}}
                                 />
+
+                                {q.script && (
+                                  <div className="rounded-xl bg-white border border-slate-200 p-4 text-sm text-slate-700 space-y-1">
+                                    <p className="text-xs font-semibold text-slate-400 mb-1">
+                                      スクリプト
+                                    </p>
+
+                                    {q.script.map(
+                                      (line, lineIndex) => (
+                                        <p key={lineIndex}>
+                                          <span className="font-bold">
+                                            {line.speaker ===
+                                            "M"
+                                              ? "男"
+                                              : "女"}
+                                            ：
+                                          </span>
+                                          {line.text}
+                                        </p>
+                                      )
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             )}
 
-                            {/* USER ANSWER */}
+                            {/* OPTIONS — to'g'ri va tanlangan javob belgilanadi */}
 
-                            <p className="text-sm mt-3">
-                              <span className="text-slate-500">
-                                Sizning javobingiz:
-                              </span>{" "}
+                            <div className="mt-3 space-y-1">
+                              {q.options.map(
+                                (option, optionIndex) => {
+                                  const isCorrect =
+                                    optionIndex === q.answer;
 
-                              <span className="font-semibold">
-                                {userAnswer !==
-                                undefined
-                                  ? `${userAnswer + 1}. ${
-                                      q.options[
-                                        userAnswer
-                                      ]
-                                    }`
-                                  : "Javobsiz"}
-                              </span>
-                            </p>
+                                  const isChosen =
+                                    optionIndex === userAnswer;
 
-                            {/* CORRECT ANSWER */}
+                                  return (
+                                    <p
+                                      key={optionIndex}
+                                      className={`text-sm rounded-lg px-3 py-1.5 border ${
+                                        isCorrect
+                                          ? "bg-green-100 border-green-300 text-green-800 font-semibold"
+                                          : isChosen
+                                          ? "bg-red-100 border-red-300 text-red-800 font-semibold"
+                                          : "bg-white border-slate-200 text-slate-600"
+                                      }`}
+                                    >
+                                      {optionIndex + 1}. {option}
+                                      {isCorrect && " ✓ to‘g‘ri javob"}
+                                      {isChosen &&
+                                        (isCorrect
+                                          ? " · sizning javobingiz"
+                                          : " ✗ sizning javobingiz")}
+                                    </p>
+                                  );
+                                }
+                              )}
+                            </div>
 
-                            <p className="text-sm mt-1 text-green-700 font-semibold">
-                              To‘g‘ri javob:{" "}
-                              {q.answer + 1}.{" "}
-                              {q.options[q.answer]}
-                            </p>
+                            {userAnswer === undefined && (
+                              <p className="text-sm mt-2 text-slate-500 font-semibold">
+                                Javob berilmagan
+                              </p>
+                            )}
+
+                            {q.glossary && (
+                              <div className="mt-3">
+                                <Glossary items={q.glossary} />
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -942,7 +995,7 @@ export default function Home() {
 
   const timerDanger = timeLeft <= 5 * 60;
 
-  const audioSrc = question.audio ?? null;
+  const isListening = Boolean(question.script || question.audio);
 
   // =========================================================
   // EXAM SCREEN
@@ -1026,43 +1079,42 @@ export default function Home() {
           <div className="grid grid-cols-4 gap-1 mt-3">
             {SECTIONS.map((section) => {
               const active =
-                current + 1 >= section.start &&
-                current + 1 <= section.end;
-
-              const sectionAnswered =
-                getSectionAnsweredCount(section);
+                section.id === currentSection.id;
 
               const sectionTotal =
                 section.end - section.start + 1;
 
+              const done =
+                getSectionAnsweredCount(section) ===
+                sectionTotal;
+
               return (
                 <button
                   key={section.id}
-                  onClick={() =>
-                    goToQuestion(
-                      section.start - 1
-                    )
-                  }
+                  onClick={() => goToSection(section)}
                   className={`rounded-lg px-2 py-2 text-left transition ${
                     active
                       ? "bg-blue-100 border border-blue-300"
-                      : "bg-slate-50 border border-slate-200 hover:bg-slate-100"
+                      : done
+                      ? "bg-green-50 border border-green-200 hover:border-blue-300"
+                      : "bg-slate-50 border border-slate-200 hover:border-blue-300"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1">
                     <span
-                      className={`text-xs font-bold ${
+                      className={`text-xs font-bold truncate ${
                         active
                           ? "text-blue-700"
                           : "text-slate-600"
                       }`}
                     >
+                      {done ? "✓ " : ""}
                       {section.id}.{" "}
                       {section.title}
                     </span>
 
                     <span className="text-[10px] text-slate-500">
-                      {sectionAnswered}/
+                      {getSectionAnsweredCount(section)}/
                       {sectionTotal}
                     </span>
                   </div>
@@ -1093,7 +1145,7 @@ export default function Home() {
 
               <div>
                 <p className="text-xs text-slate-500">
-                  {currentSection.subtitle}
+                  {currentSection.subtitle} · {question.type}
                 </p>
 
                 <p className="font-semibold text-slate-800">
@@ -1119,40 +1171,39 @@ export default function Home() {
               </div>
             )}
 
+            {/* AUDIO */}
+
+            {isListening && (
+              <div className="mb-6">
+                <ListeningPlayer
+                  key={question.id}
+                  question={question}
+                  playsUsed={plays[question.id] ?? 0}
+                  maxPlays={MAX_PLAYS}
+                  onPlay={() => registerPlay(question.id)}
+                />
+              </div>
+            )}
+
             {/* QUESTION */}
 
             <div className="rounded-xl bg-slate-50 border border-slate-200 p-6 mb-6">
+              {question.image && (
+                <p className="text-7xl text-center mb-4">
+                  {question.image}
+                </p>
+              )}
+
               <p className="text-xl md:text-2xl font-bold text-slate-900 leading-relaxed whitespace-pre-line">
-                {question.question}
+                {renderMarked(question.question)}
               </p>
             </div>
 
-            {/* AUDIO */}
+            {/* GLOSSARY — N3 kanjilar ma'nosi */}
 
-            {audioSrc && (
-              <div className="rounded-xl bg-blue-50 border border-blue-200 p-5 mb-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xl">
-                    🔊
-                  </span>
-
-                  <div>
-                    <p className="font-bold text-blue-900">
-                      聴解 — Listening
-                    </p>
-
-                    <p className="text-xs text-blue-700">
-                      Audio-ni diqqat bilan tinglang
-                    </p>
-                  </div>
-                </div>
-
-                <audio
-                  controls
-                  preload="metadata"
-                  className="w-full"
-                  src={audioSrc}
-                />
+            {question.glossary && (
+              <div className="mb-6">
+                <Glossary items={question.glossary} />
               </div>
             )}
 
@@ -1205,14 +1256,13 @@ export default function Home() {
             <div className="flex gap-3 mt-8">
               <button
                 onClick={previousQuestion}
-                disabled={current === 0}
+                disabled={!canGoBack}
                 className="flex-1 h-12 rounded-xl border border-slate-300 font-semibold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
               >
                 ← Oldingi
               </button>
 
-              {current ===
-              totalQuestions - 1 ? (
+              {isLastQuestion ? (
                 <button
                   onClick={finishExam}
                   className="flex-1 h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold"
@@ -1242,45 +1292,47 @@ export default function Home() {
             {/* SECTION LIST */}
 
             <div className="space-y-4">
-              {SECTIONS.map((section) => (
-                <div key={section.id}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-bold text-slate-700">
-                      {section.id}.{" "}
-                      {section.title}
-                    </p>
+              {SECTIONS.map((section) => {
+                const active =
+                  section.id === currentSection.id;
 
-                    <span className="text-[10px] text-slate-400">
-                      {
-                        getSectionAnsweredCount(
+                return (
+                  <div key={section.id}>
+                    <div className="flex items-center justify-between mb-2">
+                      <button
+                        onClick={() => goToSection(section)}
+                        className={`text-xs font-bold hover:text-blue-600 ${
+                          active
+                            ? "text-blue-700"
+                            : "text-slate-700"
+                        }`}
+                      >
+                        {section.id}.{" "}
+                        {section.title}
+                      </button>
+
+                      <span className="text-[10px] text-slate-400">
+                        {getSectionAnsweredCount(
                           section
-                        )
-                      }
-                      /
-                      {section.end -
-                        section.start +
-                        1}
-                    </span>
-                  </div>
+                        )}
+                        /
+                        {section.end -
+                          section.start +
+                          1}
+                      </span>
+                    </div>
 
-                  <div className="grid grid-cols-5 gap-2">
-                    {examQuestions
-                      .map((q, index) => ({
-                        q,
-                        index,
-                      }))
-                      .filter(
-                        ({ index }) =>
-                          index + 1 >=
-                            section.start &&
-                          index + 1 <=
-                            section.end
-                      )
-                      .map(
-                        ({
+                    <div className="grid grid-cols-6 gap-2">
+                      {questions
+                        .map((q, index) => ({
                           q,
                           index,
-                        }) => {
+                        }))
+                        .filter(
+                          ({ q }) =>
+                            q.section === section.id
+                        )
+                        .map(({ q, index }) => {
                           const answered =
                             answers[q.id] !==
                             undefined;
@@ -1292,9 +1344,7 @@ export default function Home() {
                             <button
                               key={q.id}
                               onClick={() =>
-                                goToQuestion(
-                                  index
-                                )
+                                goToQuestion(index)
                               }
                               className={`h-9 rounded-lg text-xs font-bold border transition ${
                                 active
@@ -1307,11 +1357,11 @@ export default function Home() {
                               {index + 1}
                             </button>
                           );
-                        }
-                      )}
+                        })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* LEGEND */}
@@ -1376,6 +1426,205 @@ export default function Home() {
         />
       )}
     </main>
+  );
+}
+
+// =========================================================
+// LISTENING PLAYER
+// mp3 bo'lsa — audio fayl, bo'lmasa — brauzerning yapon
+// tilidagi ovozi (Web Speech API) orqali script o'qiladi.
+// =========================================================
+
+function ListeningPlayer({
+  question,
+  playsUsed,
+  maxPlays,
+  onPlay,
+}: {
+  question: Question;
+  playsUsed: number;
+  maxPlays: number | null;
+  onPlay: () => void;
+}) {
+  const [playing, setPlaying] = useState(false);
+  const [error, setError] = useState("");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const remaining =
+    maxPlays === null ? null : Math.max(maxPlays - playsUsed, 0);
+
+  const disabled = playing || remaining === 0;
+
+  // Voices ro'yxati asinxron yuklanadi — oldindan qizdirib qo'yamiz.
+  useEffect(() => {
+    if (!("speechSynthesis" in window)) return;
+
+    const synth = window.speechSynthesis;
+    const warm = () => synth.getVoices();
+
+    warm();
+    synth.addEventListener("voiceschanged", warm);
+
+    return () => {
+      synth.removeEventListener("voiceschanged", warm);
+      synth.cancel();
+    };
+  }, []);
+
+  const play = () => {
+    if (disabled) return;
+
+    setError("");
+
+    if (question.audio) {
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      audio.currentTime = 0;
+      audio
+        .play()
+        .then(() => {
+          onPlay();
+          setPlaying(true);
+        })
+        .catch(() => setError("Audio ijro etilmadi."));
+      return;
+    }
+
+    if (!question.script) return;
+
+    if (!("speechSynthesis" in window)) {
+      setError(
+        "Brauzeringiz ovozli o'qishni qo'llab-quvvatlamaydi. Chrome yoki Edge'dan foydalaning."
+      );
+      return;
+    }
+
+    const synth = window.speechSynthesis;
+
+    const japaneseVoices = synth
+      .getVoices()
+      .filter((voice) =>
+        voice.lang.toLowerCase().replace("_", "-").startsWith("ja")
+      );
+
+    if (japaneseVoices.length === 0) {
+      setError(
+        "Yapon tili ovozi topilmadi. Chrome yoki Edge brauzerida oching (Windows: Sozlamalar → Vaqt va til → Nutq → yapon tilini qo'shing)."
+      );
+      return;
+    }
+
+    const femaleVoice = japaneseVoices[0];
+    const maleVoice = japaneseVoices[1] ?? japaneseVoices[0];
+
+    synth.cancel();
+
+    const lines = [
+      { speaker: "N" as const, text: question.question },
+      ...question.script,
+    ];
+
+    lines.forEach((line, index) => {
+      const utterance = new SpeechSynthesisUtterance(line.text);
+
+      utterance.lang = "ja-JP";
+      utterance.rate = 0.9;
+
+      if (line.speaker === "M") {
+        utterance.voice = maleVoice;
+        utterance.pitch = maleVoice === femaleVoice ? 0.6 : 1;
+      } else {
+        utterance.voice = femaleVoice;
+        utterance.pitch = line.speaker === "F" ? 1.2 : 1;
+      }
+
+      if (index === lines.length - 1) {
+        utterance.onend = () => setPlaying(false);
+        utterance.onerror = () => setPlaying(false);
+      }
+
+      synth.speak(utterance);
+    });
+
+    onPlay();
+    setPlaying(true);
+  };
+
+  return (
+    <div className="rounded-xl bg-blue-50 border border-blue-200 p-5">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🔊</span>
+
+          <div>
+            <p className="font-bold text-blue-900">
+              聴解 — Listening
+            </p>
+
+            <p className="text-xs text-blue-700">
+              {remaining === null
+                ? "Audioni qayta eshitish"
+                : `Audioni diqqat bilan tinglang · qolgan: ${remaining} / ${maxPlays}`}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={play}
+          disabled={disabled}
+          className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {playing
+            ? "Ijro etilmoqda…"
+            : remaining === 0
+            ? "Limit tugadi"
+            : "▶ Tinglash"}
+        </button>
+      </div>
+
+      {question.audio && (
+        <audio
+          ref={audioRef}
+          src={question.audio}
+          preload="auto"
+          onEnded={() => setPlaying(false)}
+          className="hidden"
+        />
+      )}
+
+      {error && (
+        <p className="text-sm text-red-600 mt-3">{error}</p>
+      )}
+    </div>
+  );
+}
+
+// =========================================================
+// GLOSSARY
+// =========================================================
+
+function Glossary({ items }: { items: GlossaryItem[] }) {
+  return (
+    <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+      <p className="text-xs font-bold text-amber-700 mb-2">
+        📘 Kanji lug‘ati (N3)
+      </p>
+
+      <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1">
+        {items.map((item) => (
+          <p key={item.word} className="text-sm text-slate-700">
+            <span className="font-bold text-slate-900">
+              {item.word}
+            </span>{" "}
+            <span className="text-slate-500">
+              （{item.reading}）
+            </span>{" "}
+            — {item.meaning}
+          </p>
+        ))}
+      </div>
+    </div>
   );
 }
 
