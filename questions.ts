@@ -1,11 +1,17 @@
 // =========================================================
-// JFT-BASIC A2 — MOCK TEST
+// JFT-BASIC A2 — MOCK TEST 2
 // Format (Japan Foundation): 4 section, ~12 savoldan, 60 daqiqa.
 //   1. 文字と語彙  — 語の意味 / 語の使い方 / 漢字の読み / 漢字の意味と使い方
 //   2. 会話と表現  — 文法 / 表現
 //   3. 聴解        — 会話 / 店・公共の場所での会話 / アナウンス・指示
 //   4. 読解        — 内容理解 / 情報検索
+// 1-test git tarixida (commit f880021) va pdf/JFT-Basic-A2-test-1-*.pdf da.
 // =========================================================
+
+export const TEST = {
+  name: "模擬テスト 2",
+  slug: "test-2",
+};
 
 export type SectionId = 1 | 2 | 3 | 4;
 
@@ -39,108 +45,102 @@ export type Question = {
 // READING PASSAGES
 // =========================================================
 
-const PASSAGE_BBQ = `リンさんへ
+const PASSAGE_MAIL = `グエンさんへ
 
-来週の土曜日、私の家でバーベキューをします。12時からです。
-飲み物は私が用意しますから、何か食べ物を一つ持ってきてください。
-私の家は駅から遠いので、駅に着いたら電話してください。車で迎えに行きます。
+会社の車が壊れたので、明日、修理に出します。
+明日の朝は、8時のバスに乗って、工場の前で降りてください。
+帰りは、車が直ったら、私が駅まで送ります。
 
-さくら`;
+山田`;
 
-const PASSAGE_WATER = `お知らせ
+const PASSAGE_DIARY = `私は日本に来て、半年になります。今、レストランの台所で働いています。
+はじめは、仕事のことばがわからなくて、よく失敗しました。それで、毎日、新しいことばをノートに書いて、覚えるようにしました。
+今は、店長に「仕事が早くなったね」と言われて、うれしいです。
+来月から、お客さんの注文も受けることになりました。少し心配ですが、がんばります。`;
 
-3月10日（水）午前9時から午後3時まで、水道の工事をします。
-この時間は、水が使えません。
-工事の前に、必要な水を用意しておいてください。
+const PASSAGE_NOTE = `アパートのみなさまへ
 
-さくら荘 管理人`;
+来週の日曜日に、引っ越しをします。
+朝9時から昼12時ごろまで、トラックが駐車場に止まります。
+少しうるさくなるかもしれません。ご迷惑をおかけしますが、よろしくお願いします。
 
-const PASSAGE_KAIGO = `私は去年の4月に日本に来ました。今、介護の仕事をしています。
-最初は日本語がよくわからなくて、とても大変でした。でも、同じ施設の人たちがやさしく教えてくれました。
-今は、お年寄りとたくさん話せるようになりました。
-休みの日は、日本語学校で漢字を勉強しています。来年、介護福祉士の試験を受けたいです。`;
+201号室　キム`;
 
-const PASSAGE_BUS = `みどり駅行き　バス時刻表（平日）
+const PASSAGE_LIBRARY = `みどり図書館のお知らせ
 
-7:15　7:45　8:15　8:45　9:30　10:30
+開館時間：午前9時〜午後7時
+休館日：毎週月曜日
 
-※土曜日・日曜日は1時間に1本です。`;
+・本は一人10冊まで、2週間借りることができます。
+・本を借りるときは、図書館カードが必要です。
+・図書館カードを作るときは、住所がわかるもの
+　（在留カードなど）を持ってきてください。`;
 
-const PASSAGE_LUNCH = `ランチメニュー（11:00〜14:00）
+const PASSAGE_CLEANING = `さくらクリーニング　料金表
 
-A　ハンバーグ定食 ……… 850円
-B　焼き魚定食 ………… 800円
-C　カレーライス ……… 700円
-D　ラーメン …………… 650円
+ワイシャツ ……………… 200円
+ズボン …………………… 400円
+スーツ（上下）………… 1,000円
+コート …………………… 1,200円
 
-※ランチには飲み物がつきます。
-※＋100円でデザートもつきます。`;
+※月曜日と木曜日は、全部1割引きです。
+※出した次の日の午後5時から受け取れます。`;
 
-const PASSAGE_CLASS = `日本語教室のお知らせ
+const PASSAGE_FESTIVAL = `夏祭りのお知らせ
 
-場所：市民センター 2階
-日時：毎週 火曜日・金曜日　18:30〜20:00
-料金：1回 300円
-　　　（テキスト代 1,000円は、初めての日だけ払ってください）
-申し込み：初めての人は、教室の前の日までに電話してください。
-TEL 012-345-6789`;
+日にち：8月3日（土）・4日（日）
+時間：午後4時〜午後9時
+場所：みなみ公園
 
-const PASSAGE_MEDICINE = `みどり薬局
-
-アリ 様
-
-かぜ薬
-1日3回　朝・昼・晩　食後
-1回に2錠ずつ飲んでください。
-5日分`;
+・3日の午後7時から、ダンス大会があります。
+・4日の午後8時から、花火があります。
+※雨のときは、花火は8月10日（土）の同じ時間にします。`;
 
 // =========================================================
 // PASSAGE GLOSSARIES — matndagi N3 kanjilar
 // =========================================================
 
-const GLOSSARY_BBQ: GlossaryItem[] = [
-  { word: "用意", reading: "ようい", meaning: "tayyorlash, hozirlab qo'yish" },
-  { word: "迎える", reading: "むかえる", meaning: "kutib olmoq" },
+const GLOSSARY_MAIL: GlossaryItem[] = [
+  { word: "壊れる", reading: "こわれる", meaning: "buzilmoq, sinmoq" },
+  { word: "修理", reading: "しゅうり", meaning: "ta'mirlash" },
+  { word: "工場", reading: "こうじょう", meaning: "zavod, fabrika" },
+  { word: "直る", reading: "なおる", meaning: "tuzalmoq, ta'mirlanmoq" },
 ];
 
-const GLOSSARY_WATER: GlossaryItem[] = [
-  { word: "水道", reading: "すいどう", meaning: "suv quvuri, vodoprovod" },
-  { word: "工事", reading: "こうじ", meaning: "ta'mirlash / qurilish ishlari" },
+const GLOSSARY_DIARY: GlossaryItem[] = [
+  { word: "半年", reading: "はんとし", meaning: "yarim yil" },
+  { word: "台所", reading: "だいどころ", meaning: "oshxona" },
+  { word: "失敗", reading: "しっぱい", meaning: "xato, muvaffaqiyatsizlik" },
+  { word: "覚える", reading: "おぼえる", meaning: "yodlamoq" },
+  { word: "店長", reading: "てんちょう", meaning: "do'kon / restoran boshlig'i" },
+  { word: "注文", reading: "ちゅうもん", meaning: "buyurtma" },
+];
+
+const GLOSSARY_NOTE: GlossaryItem[] = [
+  { word: "引っ越し", reading: "ひっこし", meaning: "ko'chib o'tish" },
+  { word: "駐車場", reading: "ちゅうしゃじょう", meaning: "avtoturargoh" },
+  { word: "迷惑", reading: "めいわく", meaning: "noqulaylik, bezovtalik" },
+];
+
+const GLOSSARY_LIBRARY: GlossaryItem[] = [
+  { word: "図書館", reading: "としょかん", meaning: "kutubxona" },
+  { word: "開館", reading: "かいかん", meaning: "ochilish (bino)" },
+  { word: "休館日", reading: "きゅうかんび", meaning: "dam olish kuni (bino yopiq)" },
   { word: "必要", reading: "ひつよう", meaning: "kerakli, zarur" },
-  { word: "管理人", reading: "かんりにん", meaning: "uy boshqaruvchisi (komendant)" },
+  { word: "在留カード", reading: "ざいりゅうカード", meaning: "yashash kartasi (chet elliklar)" },
 ];
 
-const GLOSSARY_KAIGO: GlossaryItem[] = [
-  { word: "介護", reading: "かいご", meaning: "parvarish (keksalar, bemorlar)" },
-  { word: "施設", reading: "しせつ", meaning: "muassasa" },
-  { word: "お年寄り", reading: "おとしより", meaning: "keksalar, qariyalar" },
-  { word: "福祉士", reading: "ふくしし", meaning: "ijtimoiy xizmat mutaxassisi" },
-  { word: "試験", reading: "しけん", meaning: "imtihon" },
+const GLOSSARY_CLEANING: GlossaryItem[] = [
+  { word: "料金表", reading: "りょうきんひょう", meaning: "narxlar jadvali" },
+  { word: "上下", reading: "うえした", meaning: "ustki va pastki (komplekt)" },
+  { word: "割引き", reading: "わりびき", meaning: "chegirma (1割 = 10%)" },
+  { word: "受け取る", reading: "うけとる", meaning: "olib ketmoq, qabul qilmoq" },
 ];
 
-const GLOSSARY_BUS: GlossaryItem[] = [
-  { word: "時刻表", reading: "じこくひょう", meaning: "qatnov jadvali" },
-  { word: "平日", reading: "へいじつ", meaning: "ish kunlari (dush–jum)" },
-  { word: "準備", reading: "じゅんび", meaning: "tayyorgarlik" },
-];
-
-const GLOSSARY_LUNCH: GlossaryItem[] = [
-  { word: "定食", reading: "ていしょく", meaning: "kompleks ovqat (set)" },
-  { word: "焼き魚", reading: "やきざかな", meaning: "qovurilgan baliq" },
-];
-
-const GLOSSARY_CLASS: GlossaryItem[] = [
-  { word: "市民", reading: "しみん", meaning: "shahar aholisi, fuqarolar" },
-  { word: "日時", reading: "にちじ", meaning: "sana va vaqt" },
-  { word: "料金", reading: "りょうきん", meaning: "to'lov, narx" },
-  { word: "申し込み", reading: "もうしこみ", meaning: "ro'yxatdan o'tish, ariza" },
-];
-
-const GLOSSARY_MEDICINE: GlossaryItem[] = [
-  { word: "薬局", reading: "やっきょく", meaning: "dorixona" },
-  { word: "食後", reading: "しょくご", meaning: "ovqatdan keyin" },
-  { word: "錠", reading: "じょう", meaning: "tabletka (sanoq so'zi)" },
-  { word: "5日分", reading: "いつかぶん", meaning: "5 kunlik" },
+const GLOSSARY_FESTIVAL: GlossaryItem[] = [
+  { word: "夏祭り", reading: "なつまつり", meaning: "yozgi bayram (festival)" },
+  { word: "大会", reading: "たいかい", meaning: "musobaqa, tanlov" },
+  { word: "花火", reading: "はなび", meaning: "salyut, mushakbozlik" },
 ];
 
 // =========================================================
@@ -155,112 +155,118 @@ export const questions: Question[] = [
     id: 1,
     section: 1,
     type: "語の意味",
-    image: "🧦",
+    image: "☂️",
     question: "これは何ですか。",
-    options: ["てぶくろ", "くつした", "ぼうし", "ズボン"],
-    answer: 1,
+    options: ["かさ", "かばん", "めがね", "とけい"],
+    answer: 0,
   },
   {
     id: 2,
     section: 1,
     type: "語の意味",
-    image: "🚑",
+    image: "🍳",
     question: "これは何ですか。",
-    options: ["しょうぼうしゃ", "パトカー", "きゅうきゅうしゃ", "タクシー"],
-    answer: 2,
+    options: ["なべ", "フライパン", "やかん", "おさら"],
+    answer: 1,
   },
   {
     id: 3,
     section: 1,
     type: "語の意味",
-    question: "「しずかじゃない」と同じ意味のことばはどれですか。",
-    options: ["せまい", "くらい", "つめたい", "うるさい"],
-    answer: 3,
+    question: "「あたらしくない」と同じ意味のことばはどれですか。",
+    options: ["わかい", "やすい", "ふるい", "おそい"],
+    answer: 2,
   },
   {
     id: 4,
     section: 1,
     type: "語の使い方",
-    question: "雨が降っているので、かさを（　　）ください。",
-    options: ["かぶって", "さして", "はいて", "かけて"],
-    answer: 1,
+    question: "寒いので、コートを（　　）出かけます。",
+    options: ["かぶって", "しめて", "はいて", "きて"],
+    answer: 3,
   },
   {
     id: 5,
     section: 1,
     type: "語の使い方",
-    question: "熱があるので、今日は会社を（　　）。",
-    options: ["休みます", "止まります", "やめます", "終わります"],
+    question: "電気を（　　）から、部屋を出てください。",
+    options: ["けして", "しめて", "とめて", "おわって"],
     answer: 0,
   },
   {
     id: 6,
     section: 1,
     type: "語の使い方",
-    question: "このシャツは少し（　　）ので、もっと大きいのはありますか。",
-    options: ["ひろい", "ふとい", "ながい", "きつい"],
-    answer: 3,
+    question: "道がわからないので、駅員に（　　）。",
+    options: ["こたえました", "たずねました", "しらせました", "おしえました"],
+    answer: 1,
+    glossary: [
+      { word: "駅員", reading: "えきいん", meaning: "stansiya xodimi" },
+    ],
   },
   {
     id: 7,
     section: 1,
     type: "漢字の読み",
-    question: "毎朝、＿電車＿で会社に行きます。",
-    options: ["てんしゃ", "でんしゃ", "でんしや", "でんじゃ"],
-    answer: 1,
+    question: "＿病院＿は駅の前にあります。",
+    options: ["びよういん", "ぴょういん", "びょうい", "びょういん"],
+    answer: 3,
   },
   {
     id: 8,
     section: 1,
     type: "漢字の読み",
-    question: "＿入口＿はあちらです。",
-    options: ["にゅうくち", "はいりぐち", "いりぐち", "いりくち"],
-    answer: 2,
+    question: "＿毎日＿、日本語を勉強しています。",
+    options: ["まいび", "まいにち", "まいじつ", "めいにち"],
+    answer: 1,
   },
   {
     id: 9,
     section: 1,
     type: "漢字の読み",
-    question: "＿来週＿の月曜日に病院へ行きます。",
-    options: ["らいしゅう", "らいしゅ", "こしゅう", "らいしょう"],
-    answer: 0,
+    question: "この部屋には＿窓＿が二つあります。",
+    options: ["かど", "かべ", "まど", "とびら"],
+    answer: 2,
   },
   {
     id: 10,
     section: 1,
     type: "漢字の意味と使い方",
-    question: "店のドアに「禁煙」と書いてあります。どういう意味ですか。",
+    question: "駅のトイレに「故障中」と書いてあります。どういう意味ですか。",
     options: [
-      "ここで食べてはいけません。",
-      "ここでたばこをすってはいけません。",
-      "ここで写真をとってはいけません。",
-      "ここに入ってはいけません。",
+      "今、そうじをしています。",
+      "今、こわれていて使えません。",
+      "今、だれかが使っています。",
+      "今、無料で使えます。",
     ],
     answer: 1,
+    glossary: [
+      { word: "無料", reading: "むりょう", meaning: "bepul" },
+    ],
   },
   {
     id: 11,
     section: 1,
     type: "漢字の意味と使い方",
-    question: "＿やすみ＿の日は何をしますか。",
-    options: ["体み", "木み", "作み", "休み"],
+    question: "＿たかい＿山にのぼりました。",
+    options: ["京い", "商い", "亭い", "高い"],
     answer: 3,
   },
   {
     id: 12,
-    glossary: [
-      { word: "準備", reading: "じゅんび", meaning: "tayyorgarlik" },
-    ],
     section: 1,
     type: "漢字の意味と使い方",
-    question: "店の入口に「営業中」と書いてあります。どういう意味ですか。",
+    question: "工事の場所に「立入禁止」と書いてあります。どういう意味ですか。",
     options: [
-      "今、店は閉まっています。",
-      "今日、店は休みです。",
-      "今、店は開いています。",
-      "店は準備をしています。",
+      "ここに入ってはいけません。",
+      "ここで立ってはいけません。",
+      "ここで待ってください。",
+      "ここから出てください。",
     ],
-    answer: 2,
+    answer: 0,
+    glossary: [
+      { word: "工事", reading: "こうじ", meaning: "qurilish / ta'mirlash ishlari" },
+    ],
   },
 
   // -------------------------------------------------------
@@ -268,155 +274,147 @@ export const questions: Question[] = [
   // -------------------------------------------------------
   {
     id: 13,
-    glossary: [
-      { word: "映画", reading: "えいが", meaning: "kino, film" },
-    ],
     section: 2,
     type: "文法",
-    question:
-      "A「日曜日、何をしましたか。」\nB「友だちと映画を（　　）、買い物をしたりしました。」",
-    options: ["見て", "見たり", "見る", "見た"],
+    question: "A「この本、もう読みましたか。」\nB「いいえ、まだ（　　）。」",
+    options: ["読みません", "読んでいません", "読みました", "読んでいます"],
     answer: 1,
   },
   {
     id: 14,
-    glossary: [
-      { word: "富士山", reading: "ふじさん", meaning: "Fuji tog'i" },
-    ],
     section: 2,
     type: "文法",
-    question: "日本に来てから、まだ富士山に（　　）ことがありません。",
-    options: ["のぼった", "のぼる", "のぼって", "のぼり"],
-    answer: 0,
+    question: "雨が降っていますから、窓を（　　）ください。",
+    options: ["しめる", "しめた", "しめ", "しめて"],
+    answer: 3,
   },
   {
     id: 15,
-    glossary: [
-      { word: "薬", reading: "くすり", meaning: "dori" },
-    ],
     section: 2,
     type: "文法",
-    question: "この薬は、ご飯を（　　）あとで飲んでください。",
-    options: ["食べる", "食べて", "食べた", "食べ"],
+    question: "日本語が上手に（　　）ように、毎日練習しています。",
+    options: ["話して", "話した", "話せる", "話す"],
     answer: 2,
+    glossary: [
+      { word: "練習", reading: "れんしゅう", meaning: "mashq qilish" },
+    ],
   },
   {
     id: 16,
-    glossary: [
-      { word: "降る", reading: "ふる", meaning: "(yomg'ir, qor) yog'moq" },
-    ],
     section: 2,
     type: "文法",
-    question: "明日は雨が（　　）かもしれません。",
-    options: ["降って", "降った", "降ら", "降る"],
-    answer: 3,
+    question: "疲れたので、少し（　　）たいです。",
+    options: ["休む", "休み", "休んで", "休ま"],
+    answer: 1,
+    glossary: [
+      { word: "疲れる", reading: "つかれる", meaning: "charchamoq" },
+    ],
   },
   {
     id: 17,
     section: 2,
     type: "文法",
-    question: "A「この漢字、読めますか。」\nB「いいえ、むずかしくて（　　）。」",
-    options: ["読みません", "読めません", "読みたいです", "読めます"],
-    answer: 1,
+    question: "すみません、この部屋で写真を（　　）もいいですか。",
+    options: ["とる", "とった", "とり", "とって"],
+    answer: 3,
   },
   {
     id: 18,
     section: 2,
     type: "文法",
-    question: "わからないところを、先生に教えて（　　）。",
-    options: ["もらいました", "あげました", "くれました", "やりました"],
-    answer: 0,
+    question: "私は母に誕生日のプレゼントを（　　）。",
+    options: ["くれました", "もらいました", "あげました", "いただきました"],
+    answer: 2,
+    glossary: [
+      { word: "誕生日", reading: "たんじょうび", meaning: "tug'ilgan kun" },
+    ],
   },
   {
     id: 19,
     section: 2,
     type: "表現",
-    question: "会社で、ほかの人より先に帰ります。何と言いますか。",
+    question: "友だちの家に入るとき、何と言いますか。",
     options: [
-      "お疲れさまでした。",
-      "いってきます。",
-      "お先に失礼します。",
-      "いただきます。",
+      "おじゃまします。",
+      "失礼しました。",
+      "いってらっしゃい。",
+      "ただいま。",
     ],
-    answer: 2,
+    answer: 0,
   },
   {
     id: 20,
     section: 2,
     type: "表現",
-    question: "友だちの家で、ごはんを食べる前に何と言いますか。",
+    question: "友だちが病気で休んでいます。電話で最後に何と言いますか。",
     options: [
-      "ごちそうさまでした。",
-      "おじゃまします。",
-      "おかえりなさい。",
+      "おめでとうございます。",
+      "お大事に。",
       "いただきます。",
+      "お疲れさまでした。",
     ],
-    answer: 3,
+    answer: 1,
+    glossary: [
+      { word: "病気", reading: "びょうき", meaning: "kasallik" },
+    ],
   },
   {
     id: 21,
     section: 2,
     type: "表現",
-    question: "A「すみません、このいす、使ってもいいですか。」\nB「（　　）」",
+    question: "A「すみません、お手洗いはどこですか。」\nB「（　　）」",
     options: [
+      "わかりました。",
       "はい、どうぞ。",
-      "いいえ、どういたしまして。",
-      "はい、おかげさまで。",
-      "ええ、いただきます。",
+      "いいえ、けっこうです。",
+      "あちらです。",
     ],
-    answer: 0,
+    answer: 3,
   },
   {
     id: 22,
-    glossary: [
-      { word: "注文", reading: "ちゅうもん", meaning: "buyurtma" },
-      { word: "客", reading: "きゃく", meaning: "mijoz, mehmon" },
-    ],
     section: 2,
     type: "表現",
-    question: "店員「ご注文は？」\n客「（　　）」",
+    question:
+      "A「コーヒーをもう一杯いかがですか。」\nB「（　　）もうおなかがいっぱいなので。」",
     options: [
-      "コーヒーはいかがですか。",
-      "コーヒーを一つお願いします。",
-      "コーヒーをどうぞ。",
-      "コーヒーでございます。",
-    ],
-    answer: 1,
-  },
-  {
-    id: 23,
-    glossary: [
-      { word: "会議", reading: "かいぎ", meaning: "majlis, yig'ilish" },
-      { word: "遅れる", reading: "おくれる", meaning: "kechikmoq" },
-      { word: "上司", reading: "じょうし", meaning: "boshliq, rahbar" },
-    ],
-    section: 2,
-    type: "表現",
-    question: "会議に遅れました。上司に何と言いますか。",
-    options: [
-      "遅れてもいいですか。",
-      "遅れないでください。",
-      "遅れて申し訳ありません。",
-      "遅れてよかったです。",
+      "はい、おねがいします。",
+      "いいえ、どういたしまして。",
+      "いいえ、けっこうです。",
+      "はい、いただきます。",
     ],
     answer: 2,
   },
   {
-    id: 24,
-    glossary: [
-      { word: "食事", reading: "しょくじ", meaning: "ovqatlanish" },
+    id: 23,
+    section: 2,
+    type: "表現",
+    question: "仕事中に気分が悪くなりました。上司に何と言いますか。",
+    options: [
+      "休まないでください。",
+      "すみません、少し休ませていただけませんか。",
+      "休んではいけません。",
+      "休んだほうがいいですよ。",
     ],
+    answer: 1,
+    glossary: [
+      { word: "気分", reading: "きぶん", meaning: "o'zini his qilish, kayfiyat" },
+      { word: "上司", reading: "じょうし", meaning: "boshliq, rahbar" },
+    ],
+  },
+  {
+    id: 24,
     section: 2,
     type: "表現",
     question:
-      "A「明日、いっしょに食事しませんか。」\nB「ありがとうございます。でも、（　　）」",
+      "A「週末、いっしょに買い物に行きませんか。」\nB「いいですね。（　　）」",
     options: [
       "ぜひ行きましょう。",
-      "何時にしますか。",
-      "明日は大丈夫です。",
-      "明日はちょっと…。",
+      "行きませんでした。",
+      "行ってください。",
+      "行ったことがあります。",
     ],
-    answer: 3,
+    answer: 0,
   },
 
   // -------------------------------------------------------
@@ -424,235 +422,262 @@ export const questions: Question[] = [
   // -------------------------------------------------------
   {
     id: 25,
-    audio: "/audio/listening/25.mp3",
-    glossary: [
-      { word: "掃除", reading: "そうじ", meaning: "tozalash, yig'ishtirish" },
-      { word: "料理", reading: "りょうり", meaning: "ovqat pishirish" },
-    ],
     section: 3,
     type: "会話",
-    question: "男の人は日曜日に何をしましたか。",
-    options: ["テニスと買い物", "掃除と料理", "テニスと掃除", "料理と買い物"],
-    answer: 1,
+    question: "女の人は昨日、何を買いましたか。",
+    options: ["シャツとかばん", "くつとかばん", "くつとぼうし", "シャツとぼうし"],
+    answer: 2,
+    audio: "/audio/test-2/25.mp3",
     script: [
-      { speaker: "F", text: "田中さん、週末は何をしましたか。" },
+      { speaker: "M", text: "その靴、新しいですね。" },
       {
-        speaker: "M",
-        text: "土曜日は友だちとテニスをしました。日曜日は家で掃除をしてから、料理をしました。",
+        speaker: "F",
+        text: "ええ、昨日デパートで買いました。かばんも買いたかったんですが、高かったので、帽子を買いました。",
       },
-      { speaker: "F", text: "そうですか。いいですね。" },
+      { speaker: "M", text: "そうですか。どちらもいいですね。" },
     ],
   },
   {
     id: 26,
-    audio: "/audio/listening/26.mp3",
-    glossary: [
-      { word: "信号", reading: "しんごう", meaning: "svetofor" },
-      { word: "曲がる", reading: "まがる", meaning: "burilmoq" },
-    ],
     section: 3,
     type: "会話",
-    question: "男の人はどこで曲がりますか。",
-    options: [
-      "一つ目の信号を右",
-      "一つ目の信号を左",
-      "二つ目の信号を左",
-      "二つ目の信号を右",
-    ],
-    answer: 3,
+    question: "二人は何で駅へ行きますか。",
+    options: ["タクシー", "バス", "電車", "歩いて"],
+    answer: 0,
+    audio: "/audio/test-2/26.mp3",
     script: [
-      { speaker: "M", text: "すみません、駅はどこですか。" },
+      { speaker: "F", text: "駅まで歩いて行きましょうか。" },
+      {
+        speaker: "M",
+        text: "でも、歩くと20分ぐらいかかりますよ。バスで行きませんか。",
+      },
       {
         speaker: "F",
-        text: "この道をまっすぐ行って、二つ目の信号を右に曲がってください。駅は左にありますよ。",
+        text: "あ、バスは今出たところですね。次のバスは30分後ですよ。",
       },
-      { speaker: "M", text: "二つ目の信号を右ですね。ありがとうございます。" },
+      { speaker: "M", text: "じゃあ、タクシーにしましょう。" },
+      { speaker: "F", text: "そうですね。" },
     ],
   },
   {
     id: 27,
-    audio: "/audio/listening/27.mp3",
     section: 3,
     type: "会話",
-    question: "男の人は何時ごろパーティーに行きますか。",
-    options: ["6時", "6時半", "7時半", "7時"],
-    answer: 2,
+    question: "女の人はいつ病院へ行きますか。",
+    options: ["今日の午後", "月曜日の朝", "日曜日の朝", "月曜日の午後"],
+    answer: 1,
+    audio: "/audio/test-2/27.mp3",
     script: [
-      { speaker: "F", text: "マリアさんの誕生日パーティー、何時からですか。" },
+      { speaker: "M", text: "顔色が悪いですね。大丈夫ですか。" },
       {
-        speaker: "M",
-        text: "6時からです。でも、ぼくは仕事があるので、7時半ごろ行きます。",
+        speaker: "F",
+        text: "ちょっと頭が痛いんです。今日の午後、病院へ行こうと思っています。",
       },
-      { speaker: "F", text: "そうですか。私は6時に行きます。" },
+      { speaker: "M", text: "今日は土曜日ですから、病院は午前中だけですよ。" },
+      {
+        speaker: "F",
+        text: "そうですか。明日は日曜日で病院が休みなので、月曜日の朝、行きます。",
+      },
     ],
   },
   {
     id: 28,
-    audio: "/audio/listening/28.mp3",
     section: 3,
     type: "会話",
-    question: "二人はいつ山に行きますか。",
-    options: ["あさって", "明日の午前", "明日の午後", "今日"],
-    answer: 0,
+    question: "男の人はどうしてパーティーに行きませんか。",
+    options: [
+      "仕事があるから",
+      "かぜをひいたから",
+      "国から両親が来るから",
+      "お金がないから",
+    ],
+    answer: 2,
+    audio: "/audio/test-2/28.mp3",
     script: [
-      { speaker: "M", text: "明日、山に行きませんか。" },
+      { speaker: "F", text: "土曜日のパーティー、来ますよね。" },
       {
-        speaker: "F",
-        text: "いいですね。でも、天気予報で、明日は午後から雨だと言っていましたよ。",
+        speaker: "M",
+        text: "行きたいんですが、その日は国から両親が来るので、空港へ迎えに行かなければならないんです。",
       },
-      { speaker: "M", text: "じゃあ、あさってにしましょう。" },
-      { speaker: "F", text: "そうしましょう。" },
+      { speaker: "F", text: "そうですか。残念ですね。" },
     ],
   },
   {
     id: 29,
-    audio: "/audio/listening/29.mp3",
     section: 3,
     type: "店・公共の場所での会話",
-    question: "女の人はどのサイズを買いますか。",
-    options: ["Sサイズ", "Mサイズ", "Lサイズ", "買いません"],
-    answer: 2,
+    question: "男の人は何をいくつ買いますか。",
+    options: ["みかんを5つ", "りんごを5つ", "りんごを3つ", "みかんを3つ"],
+    answer: 0,
+    audio: "/audio/test-2/29.mp3",
     script: [
-      { speaker: "M", text: "いらっしゃいませ。" },
-      { speaker: "F", text: "すみません、このTシャツのMサイズはありますか。" },
+      { speaker: "M", text: "すみません、りんごを5つください。" },
+      {
+        speaker: "F",
+        text: "申し訳ありません。りんごは今日、3つしかないんです。",
+      },
       {
         speaker: "M",
-        text: "申し訳ありません。Mサイズは今ありません。SとLならあります。",
+        text: "そうですか。じゃあ、りんごはいいです。かわりに、みかんを5つください。",
       },
-      { speaker: "F", text: "じゃあ、Lをください。" },
+      { speaker: "F", text: "はい、みかん5つですね。" },
     ],
   },
   {
     id: 30,
-    audio: "/audio/listening/30.mp3",
-    glossary: [
-      { word: "食事", reading: "しょくじ", meaning: "ovqatlanish" },
-    ],
     section: 3,
     type: "店・公共の場所での会話",
-    question: "コーヒーはいつ来ますか。",
-    options: ["食事のあと", "食事の前", "食事と一緒", "来ません"],
-    answer: 0,
+    question: "男の人は明日、何時ごろ朝ごはんを食べますか。",
+    options: ["6時半", "7時", "8時", "9時"],
+    answer: 1,
+    audio: "/audio/test-2/30.mp3",
     script: [
-      { speaker: "F", text: "ご注文はお決まりですか。" },
-      { speaker: "M", text: "はい。カレーライスを一つと、コーヒーをお願いします。" },
+      { speaker: "M", text: "すみません、朝ごはんは何時からですか。" },
       {
         speaker: "F",
-        text: "コーヒーは、お食事と一緒にお持ちしますか。食後になさいますか。",
+        text: "6時半から9時までです。1階のレストランでどうぞ。",
       },
-      { speaker: "M", text: "食後にお願いします。" },
+      {
+        speaker: "M",
+        text: "明日は8時にホテルを出るので、7時ごろ食べます。",
+      },
+      { speaker: "F", text: "かしこまりました。" },
     ],
   },
   {
     id: 31,
-    audio: "/audio/listening/31.mp3",
-    glossary: [
-      { word: "住所", reading: "じゅうしょ", meaning: "manzil, yashash joyi" },
-      { word: "薬", reading: "くすり", meaning: "dori" },
-    ],
     section: 3,
     type: "店・公共の場所での会話",
-    question: "男の人はこのあと、まず何をしますか。",
-    options: ["薬を飲む", "先生と話す", "紙に名前と住所を書く", "家に帰る"],
+    question: "女の人はこのあと、まず何をしますか。",
+    options: [
+      "紙に住所を書く",
+      "在留カードを見せる",
+      "家に帰る",
+      "手続きをする",
+    ],
     answer: 2,
+    audio: "/audio/test-2/31.mp3",
     script: [
-      { speaker: "F", text: "今日はどうしましたか。" },
-      { speaker: "M", text: "きのうの夜から頭が痛くて、熱もあります。" },
       {
         speaker: "F",
-        text: "そうですか。では、この紙に名前と住所を書いて、少々お待ちください。",
+        text: "すみません、住所が変わったので、手続きをしたいんですが。",
       },
-      { speaker: "M", text: "はい、わかりました。" },
+      {
+        speaker: "M",
+        text: "では、この紙に新しい住所を書いてください。それから、在留カードを見せてください。",
+      },
+      { speaker: "F", text: "あ、在留カードを家に忘れてしまいました。" },
+      {
+        speaker: "M",
+        text: "そうですか。カードがないと、手続きができないんですが。",
+      },
+      { speaker: "F", text: "わかりました。じゃあ、今から家に取りに帰ります。" },
+    ],
+    glossary: [
+      { word: "住所", reading: "じゅうしょ", meaning: "manzil, yashash joyi" },
+      { word: "手続き", reading: "てつづき", meaning: "rasmiylashtirish (hujjat)" },
+      { word: "在留カード", reading: "ざいりゅうカード", meaning: "yashash kartasi" },
     ],
   },
   {
     id: 32,
-    audio: "/audio/listening/32.mp3",
-    glossary: [
-      { word: "荷物", reading: "にもつ", meaning: "yuk, posilka" },
-      { word: "航空便", reading: "こうくうびん", meaning: "aviapochta" },
-      { word: "船便", reading: "ふなびん", meaning: "dengiz pochtasi" },
-    ],
     section: 3,
     type: "店・公共の場所での会話",
-    question: "女の人はどうやって荷物を送りますか。",
-    options: ["航空便で送る", "船便で送る", "今日は送らない", "自分で持っていく"],
-    answer: 1,
+    question: "何人で予約しましたか。",
+    options: ["3人", "4人", "5人", "6人"],
+    answer: 2,
+    audio: "/audio/test-2/32.mp3",
     script: [
-      { speaker: "F", text: "この荷物をベトナムに送りたいんですが。" },
-      { speaker: "M", text: "船便と航空便がありますが。" },
-      { speaker: "F", text: "どちらが安いですか。" },
+      { speaker: "F", text: "はい、レストランさくらでございます。" },
       {
         speaker: "M",
-        text: "船便のほうが安いですが、1か月ぐらいかかります。航空便は1週間ぐらいです。",
+        text: "もしもし、土曜日の夜7時に予約したいんですが。",
       },
-      { speaker: "F", text: "急いでいないので、安いほうでお願いします。" },
+      { speaker: "F", text: "何名様ですか。" },
+      {
+        speaker: "M",
+        text: "4人です。あ、すみません。子どもも1人いるので、5人でお願いします。",
+      },
+      { speaker: "F", text: "かしこまりました。5名様ですね。" },
+    ],
+    glossary: [
+      { word: "予約", reading: "よやく", meaning: "oldindan band qilish (bron)" },
     ],
   },
   {
     id: 33,
-    audio: "/audio/listening/33.mp3",
-    glossary: [
-      { word: "番線", reading: "ばんせん", meaning: "platforma (yo'l) raqami" },
-    ],
     section: 3,
     type: "アナウンス・指示",
-    question: "東京行きの電車は何番線に来ますか。",
-    options: ["1番線", "3番線", "4番線", "2番線"],
-    answer: 3,
+    question: "何階でセールをしていますか。",
+    options: ["3階", "4階", "5階", "6階"],
+    answer: 0,
+    audio: "/audio/test-2/33.mp3",
     script: [
       {
         speaker: "F",
-        text: "まもなく、2番線に東京行きの電車がまいります。危ないですから、黄色い線の内側までお下がりください。",
+        text: "本日は、みどりデパートにご来店いただき、ありがとうございます。ただいま、3階のくつ売り場でセールを行っております。5階のかばん売り場ではございません。どうぞご利用ください。",
       },
     ],
   },
   {
     id: 34,
-    audio: "/audio/listening/34.mp3",
-    glossary: [
-      { word: "会議室", reading: "かいぎしつ", meaning: "majlislar xonasi" },
-    ],
     section: 3,
     type: "アナウンス・指示",
-    question: "明日、何時までに会議室に行かなければなりませんか。",
-    options: ["8時半", "8時50分", "9時", "9時10分"],
+    question: "ベルが鳴ったら、どこに集まりますか。",
+    options: ["教室", "駐車場", "体育館", "エレベーターの前"],
     answer: 1,
+    audio: "/audio/test-2/34.mp3",
     script: [
       {
         speaker: "M",
-        text: "みなさん、明日の朝は9時から会議があります。会議室は3階です。8時50分までに来てください。それから、ノートとペンを持ってきてください。",
+        text: "明日は避難訓練があります。10時にベルが鳴ったら、すぐに外に出て、駐車場に集まってください。エレベーターは使わないでください。",
       },
+    ],
+    glossary: [
+      { word: "駐車場", reading: "ちゅうしゃじょう", meaning: "avtoturargoh" },
+      { word: "体育館", reading: "たいいくかん", meaning: "sport zali" },
     ],
   },
   {
     id: 35,
-    audio: "/audio/listening/35.mp3",
     section: 3,
     type: "アナウンス・指示",
-    question: "何が安くなりましたか。",
-    options: ["肉と魚", "パンと牛乳", "トマトとキャベツ", "くだもの"],
-    answer: 2,
+    question: "電車はどうして遅れていますか。",
+    options: [
+      "事故があったから",
+      "雪が降っているから",
+      "人が多いから",
+      "電車がこわれたから",
+    ],
+    answer: 1,
+    audio: "/audio/test-2/35.mp3",
     script: [
       {
         speaker: "F",
-        text: "本日はご来店ありがとうございます。ただいまから、1階の野菜売り場で、トマトとキャベツを半額で販売いたします。どうぞご利用ください。",
+        text: "お客様にお知らせいたします。ただいま、雪のため、電車が15分ほど遅れております。ご迷惑をおかけして、申し訳ございません。",
       },
+    ],
+    glossary: [
+      { word: "遅れる", reading: "おくれる", meaning: "kechikmoq" },
+      { word: "事故", reading: "じこ", meaning: "avariya, baxtsiz hodisa" },
     ],
   },
   {
     id: 36,
-    audio: "/audio/listening/36.mp3",
     section: 3,
     type: "アナウンス・指示",
-    question: "プラスチックのごみは、いつ出しますか。",
-    options: ["水曜日の朝", "月曜日の朝", "木曜日の朝", "水曜日の夜"],
-    answer: 0,
+    question: "プールに入る前に、何をしなければなりませんか。",
+    options: ["帽子を買う", "水を飲む", "名前を書く", "シャワーを浴びる"],
+    answer: 3,
+    audio: "/audio/test-2/36.mp3",
     script: [
       {
         speaker: "M",
-        text: "ごみの出し方を説明します。燃えるごみは月曜日と木曜日です。プラスチックは水曜日です。朝8時までに出してください。夜に出してはいけません。",
+        text: "プールを使う方にお知らせします。プールは午後6時までです。プールに入る前に、必ずシャワーを浴びてください。帽子を持っていない方は、受付で借りることができます。",
       },
+    ],
+    glossary: [
+      { word: "浴びる", reading: "あびる", meaning: "(dush) qabul qilmoq" },
     ],
   },
 
@@ -661,149 +686,169 @@ export const questions: Question[] = [
   // -------------------------------------------------------
   {
     id: 37,
-    glossary: GLOSSARY_BBQ,
     section: 4,
     type: "内容理解",
-    passage: PASSAGE_BBQ,
-    question: "リンさんは何を持っていきますか。",
-    options: ["飲み物", "車", "何も持っていかない", "食べ物"],
+    passage: PASSAGE_MAIL,
+    question: "グエンさんは明日の朝、どうやって工場へ行きますか。",
+    options: [
+      "会社の車で行く",
+      "山田さんの車で行く",
+      "歩いて行く",
+      "バスで行く",
+    ],
     answer: 3,
+    glossary: GLOSSARY_MAIL,
   },
   {
     id: 38,
-    glossary: GLOSSARY_BBQ,
     section: 4,
     type: "内容理解",
-    passage: PASSAGE_BBQ,
-    question: "リンさんは駅に着いたら、何をしますか。",
+    passage: PASSAGE_MAIL,
+    question: "グエンさんは、帰りはどうしますか。",
     options: [
-      "歩いてさくらさんの家へ行く",
-      "さくらさんに電話する",
-      "バスに乗る",
-      "タクシーに乗る",
+      "一人でバスで帰る",
+      "工場から歩いて帰る",
+      "車が直ったら、山田さんに駅まで送ってもらう",
+      "工場に泊まる",
     ],
-    answer: 1,
+    answer: 2,
+    glossary: GLOSSARY_MAIL,
   },
   {
     id: 39,
-    glossary: GLOSSARY_WATER,
     section: 4,
     type: "内容理解",
-    passage: PASSAGE_WATER,
-    question: "3月10日の午後4時に、水を使うことができますか。",
+    passage: PASSAGE_DIARY,
+    question: "この人は、はじめ、どうしてよく失敗しましたか。",
     options: [
-      "使えません。",
-      "使えます。",
-      "午後5時から使えます。",
-      "一日中使えません。",
+      "料理が下手だったから",
+      "台所がせまかったから",
+      "店長がきびしかったから",
+      "仕事のことばがわからなかったから",
     ],
-    answer: 1,
+    answer: 3,
+    glossary: GLOSSARY_DIARY,
   },
   {
     id: 40,
-    glossary: GLOSSARY_WATER,
     section: 4,
     type: "内容理解",
-    passage: PASSAGE_WATER,
-    question: "このアパートに住んでいる人は、何をしておかなければなりませんか。",
+    passage: PASSAGE_DIARY,
+    question: "この人は、来月から何をしますか。",
     options: [
-      "工事の前に水を用意する",
-      "工事を手伝う",
-      "午前9時に家にいる",
-      "管理人に電話する",
+      "お客さんの注文を受ける",
+      "新しい店で働く",
+      "料理を教える",
+      "日本語学校に通う",
     ],
     answer: 0,
+    glossary: GLOSSARY_DIARY,
   },
   {
     id: 41,
-    glossary: GLOSSARY_KAIGO,
     section: 4,
     type: "内容理解",
-    passage: PASSAGE_KAIGO,
-    question: "この人は、今どうですか。",
+    passage: PASSAGE_NOTE,
+    question: "キムさんは、来週の日曜日に何をしますか。",
     options: [
-      "日本語がよくわからない。",
-      "漢字を教えている。",
-      "お年寄りとたくさん話せる。",
-      "介護福祉士の試験に合格した。",
+      "引っ越しをする",
+      "トラックを買う",
+      "駐車場を掃除する",
+      "パーティーをする",
     ],
-    answer: 2,
+    answer: 0,
+    glossary: GLOSSARY_NOTE,
   },
   {
     id: 42,
-    glossary: GLOSSARY_KAIGO,
     section: 4,
     type: "内容理解",
-    passage: PASSAGE_KAIGO,
-    question: "この人は、休みの日に何をしていますか。",
+    passage: PASSAGE_NOTE,
+    question: "トラックはいつ駐車場に止まりますか。",
     options: [
-      "施設で働いている。",
-      "試験を受けている。",
-      "お年寄りと話している。",
-      "日本語学校で漢字を勉強している。",
+      "来週の日曜日の夜",
+      "来週の土曜日の朝",
+      "来週の日曜日の午前",
+      "今週の日曜日の午後",
     ],
-    answer: 3,
+    answer: 2,
+    glossary: GLOSSARY_NOTE,
   },
   {
     id: 43,
-    glossary: GLOSSARY_BUS,
     section: 4,
     type: "情報検索",
-    passage: PASSAGE_BUS,
+    passage: PASSAGE_LIBRARY,
     question:
-      "あなたは平日、8時に起きます。準備に20分かかります。家からバス停まで歩いて5分です。何時のバスに乗りますか。",
-    options: ["7:45", "8:15", "8:45", "9:30"],
-    answer: 2,
+      "初めて図書館で本を借りたいです。図書館カードはまだありません。何を持っていきますか。",
+    options: ["在留カード", "写真", "お金", "図書館カード"],
+    answer: 0,
+    glossary: GLOSSARY_LIBRARY,
   },
   {
     id: 44,
-    glossary: GLOSSARY_LUNCH,
     section: 4,
     type: "情報検索",
-    passage: PASSAGE_LUNCH,
-    question: "魚が食べたいです。デザートも食べたいです。いくら払いますか。",
-    options: ["800円", "900円", "850円", "950円"],
-    answer: 1,
+    passage: PASSAGE_LIBRARY,
+    question: "図書館で、一人何冊まで本を借りることができますか。",
+    options: ["2冊", "7冊", "9冊", "10冊"],
+    answer: 3,
+    glossary: GLOSSARY_LIBRARY,
   },
   {
     id: 45,
-    glossary: GLOSSARY_LUNCH,
     section: 4,
     type: "情報検索",
-    passage: PASSAGE_LUNCH,
-    question: "ランチメニューは何時まで食べられますか。",
-    options: ["午前11時まで", "午後3時まで", "午後2時まで", "一日中"],
+    passage: PASSAGE_CLEANING,
+    question:
+      "火曜日に、ワイシャツを2枚とズボンを1本出します。いくら払いますか。",
+    options: ["600円", "1,000円", "800円", "1,200円"],
     answer: 2,
+    glossary: GLOSSARY_CLEANING,
   },
   {
     id: 46,
-    glossary: GLOSSARY_CLASS,
     section: 4,
     type: "情報検索",
-    passage: PASSAGE_CLASS,
-    question: "初めて日本語教室に行く日、いくら払いますか。",
-    options: ["300円", "1,000円", "0円", "1,300円"],
+    passage: PASSAGE_CLEANING,
+    question: "水曜日の朝に出しました。いつから受け取れますか。",
+    options: [
+      "水曜日の午後5時",
+      "木曜日の朝",
+      "金曜日の午後5時",
+      "木曜日の午後5時",
+    ],
     answer: 3,
+    glossary: GLOSSARY_CLEANING,
   },
   {
     id: 47,
-    glossary: GLOSSARY_CLASS,
     section: 4,
     type: "情報検索",
-    passage: PASSAGE_CLASS,
-    question:
-      "初めて、金曜日のクラスに行きたいです。いつまでに電話しなければなりませんか。",
-    options: ["木曜日", "水曜日", "金曜日", "月曜日"],
+    passage: PASSAGE_FESTIVAL,
+    question: "花火を見たいです。いつ行けばいいですか。",
+    options: [
+      "4日の午後8時",
+      "3日の午後7時",
+      "3日の午後8時",
+      "4日の午後4時",
+    ],
     answer: 0,
+    glossary: GLOSSARY_FESTIVAL,
   },
   {
     id: 48,
-    glossary: GLOSSARY_MEDICINE,
     section: 4,
     type: "情報検索",
-    passage: PASSAGE_MEDICINE,
-    question: "アリさんは1日に何錠飲みますか。",
-    options: ["2錠", "3錠", "5錠", "6錠"],
+    passage: PASSAGE_FESTIVAL,
+    question: "4日は雨でした。花火を見たいです。いつ行けばいいですか。",
+    options: [
+      "8月5日の午後8時",
+      "8月11日の午後8時",
+      "8月10日の午後7時",
+      "8月10日の午後8時",
+    ],
     answer: 3,
+    glossary: GLOSSARY_FESTIVAL,
   },
 ];

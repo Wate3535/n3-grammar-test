@@ -9,7 +9,7 @@ Ishga tushirish (loyiha ildizidan):
   pip install edge-tts imageio-ffmpeg
   python scripts/generate-audio.py
 
-Natija: public/audio/listening/<id>.mp3
+Natija: har bir savolning `audio` maydonidagi yo'l (public/ ichida).
 """
 
 import asyncio
@@ -22,7 +22,7 @@ import edge_tts
 import imageio_ffmpeg
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT_DIR = ROOT / "public" / "audio" / "listening"
+PUBLIC = ROOT / "public"
 FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 
 VOICES = {
@@ -96,19 +96,20 @@ async def build(question: dict, number: int, tmp: Path):
 
     silence(GAP_LINE, gap_line)
     silence(GAP_SECTION, gap_section)
-    concat(parts, OUT_DIR / f"{question['id']}.mp3", tmp)
+    out = PUBLIC / question["audio"].lstrip("/")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    concat(parts, out, tmp)
 
 
 async def main():
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
     questions = load_questions()
 
     for number, question in enumerate(questions, start=1):
-        if not question.get("script"):
+        if not question.get("script") or not question.get("audio"):
             continue
         with tempfile.TemporaryDirectory() as tmp:
             await build(question, number, Path(tmp))
-        print(f"✓ {question['id']}.mp3")
+        print(f"✓ {question['audio']}")
 
 
 if __name__ == "__main__":

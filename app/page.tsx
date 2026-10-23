@@ -10,6 +10,7 @@ import {
 } from "react";
 import {
   questions,
+  TEST,
   type GlossaryItem,
   type Question,
   type SectionId,
@@ -503,7 +504,7 @@ export default function Home() {
               </h1>
 
               <p className="mt-2 text-blue-100">
-                JFT-Basic A2 — {totalQuestions}問 Mock Test
+                JFT-Basic A2 — {TEST.name} · {totalQuestions}問
               </p>
             </div>
 
@@ -666,25 +667,46 @@ export default function Home() {
 
             <div className="bg-blue-600 text-white px-6 py-8 text-center">
               <p className="text-sm opacity-90">
-                JFT-Basic A2
+                JFT-Basic A2 — {TEST.name}
               </p>
 
-              <h1 className="text-3xl font-bold mt-1">
+              <h1 className="text-2xl sm:text-3xl font-bold mt-1">
                 日本語基礎テスト 結果
               </h1>
 
               <p className="mt-2 text-blue-100">
                 {name}
               </p>
+
+              {/* BALL — mobil va kompyuterda katta ko'rinadi */}
+
+              <div className="mt-5 inline-block rounded-2xl bg-white/15 px-6 py-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-100">
+                  Sizning ballingiz
+                </p>
+
+                <p className="mt-1 font-bold leading-none">
+                  <span className="text-5xl">
+                    {scaledScore}
+                  </span>
+                  <span className="text-2xl text-blue-100">
+                    {" "}/ 250
+                  </span>
+                </p>
+
+                <p className="mt-2 text-xs text-blue-100">
+                  O‘tish bali: {PASS_SCORE}
+                </p>
+              </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {/* RESULT CARDS */}
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8">
                 <ResultCard
-                  title="BALL (10–250)"
-                  value={String(scaledScore)}
+                  title="BALL"
+                  value={`${scaledScore} / 250`}
                 />
 
                 <ResultCard
@@ -1664,12 +1686,12 @@ function ResultCard({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
       <p className="text-xs text-slate-500 font-semibold">
         {title}
       </p>
 
-      <p className="text-2xl font-bold text-slate-900 mt-1">
+      <p className="text-xl sm:text-2xl font-bold text-slate-900 mt-1 whitespace-nowrap">
         {value}
       </p>
     </div>

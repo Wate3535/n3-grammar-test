@@ -1,6 +1,6 @@
 // Testning elektron (PDF) variantini yaratadi:
-//   pdf/JFT-Basic-A2-savollar.pdf — faqat savollar
-//   pdf/JFT-Basic-A2-javoblar.pdf — javoblar kaliti, skriptlar bilan
+//   pdf/JFT-Basic-A2-<slug>-savollar.pdf — faqat savollar
+//   pdf/JFT-Basic-A2-<slug>-javoblar.pdf — javoblar kaliti, skriptlar bilan
 //
 // Ishga tushirish: npx tsx scripts/make-pdf.ts
 // Chrome yoki Edge o'rnatilgan bo'lishi kerak (CHROME_PATH bilan ham berish mumkin).
@@ -10,7 +10,7 @@ import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { questions, type GlossaryItem, type Question } from "../questions";
+import { questions, TEST, type GlossaryItem, type Question } from "../questions";
 
 const ROOT = resolve(__dirname, "..");
 const OUT_DIR = join(ROOT, "pdf");
@@ -114,7 +114,7 @@ function page(withAnswers: boolean) {
   const title = withAnswers ? "解答 — Javoblar" : "問題 — Savollar";
 
   return `<!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><title>JFT-Basic A2 ${title}</title>
+<html lang="ja"><head><meta charset="utf-8"><title>JFT-Basic A2 ${TEST.name} ${title}</title>
 <style>
   @page { size: A4; margin: 16mm 14mm; }
   body { font-family: "Yu Gothic", "Meiryo", "MS Gothic", sans-serif; color: #0f172a; font-size: 11.5pt; line-height: 1.6; }
@@ -147,7 +147,7 @@ function page(withAnswers: boolean) {
 <body>
 <header>
   <h1>国際交流基金日本語基礎テスト（JFT-Basic A2）</h1>
-  <p>${title} · ${questions.length}問 · 60分 · 4 section</p>
+  <p>${TEST.name} · ${title} · ${questions.length}問 · 60分 · 4 section</p>
   ${withAnswers ? "" : `<p class="student">Ism, familiya: ______________________________　 Sana: ____________</p>`}
 </header>
 ${withAnswers ? `${answerKey()}<div class="detail">${body(true)}</div>` : body(false)}
@@ -172,8 +172,8 @@ const tmp = mkdtempSync(join(tmpdir(), "jft-pdf-"));
 mkdirSync(OUT_DIR, { recursive: true });
 
 for (const [withAnswers, name] of [
-  [false, "JFT-Basic-A2-savollar.pdf"],
-  [true, "JFT-Basic-A2-javoblar.pdf"],
+  [false, `JFT-Basic-A2-${TEST.slug}-savollar.pdf`],
+  [true, `JFT-Basic-A2-${TEST.slug}-javoblar.pdf`],
 ] as const) {
   const html = join(tmp, `${name}.html`);
   writeFileSync(html, page(withAnswers), "utf-8");
