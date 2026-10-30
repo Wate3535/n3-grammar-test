@@ -15,6 +15,7 @@ import {
   type Question,
   type SectionId,
 } from "@/questions";
+import { questions3, TEST_3 } from "@/questions-test-3";
 
 // =========================================================
 // JFT-BASIC A2 SETTINGS
@@ -38,6 +39,11 @@ type Section = {
   start: number;
   end: number;
 };
+
+const TEST_OPTIONS = [
+  { ...TEST_3, questions: questions3 },
+  { ...TEST, questions },
+];
 
 const SECTION_META: Omit<Section, "start" | "end">[] = [
   {
@@ -66,31 +72,20 @@ const SECTION_META: Omit<Section, "start" | "end">[] = [
   },
 ];
 
-const SECTIONS: Section[] = SECTION_META.map((meta) => {
-  const numbers = questions
-    .map((q, index) => (q.section === meta.id ? index + 1 : 0))
-    .filter((n) => n > 0);
-
-  return {
-    ...meta,
-    start: numbers[0],
-    end: numbers[numbers.length - 1],
-  };
-});
-
 // =========================================================
 // HELPERS
 // =========================================================
 
 function getSectionByQuestionNumber(
-  questionNumber: number
+  questionNumber: number,
+  sections: Section[]
 ): Section {
   return (
-    SECTIONS.find(
+    sections.find(
       (section) =>
         questionNumber >= section.start &&
         questionNumber <= section.end
-    ) || SECTIONS[0]
+    ) || sections[0]
   );
 }
 
@@ -130,6 +125,7 @@ function renderMarked(text: string): ReactNode {
 export default function Home() {
   const [state, setState] = useState<ExamState>("start");
 
+  const [selectedTestSlug, setSelectedTestSlug] = useState(TEST_3.slug);
   const [name, setName] = useState("");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -140,18 +136,37 @@ export default function Home() {
   const [showWarning, setShowWarning] = useState(false);
   const [warningText, setWarningText] = useState("");
 
-  const totalQuestions = questions.length;
-  const question = questions[current];
+  const selectedTest =
+    TEST_OPTIONS.find((test) => test.slug === selectedTestSlug) ??
+    TEST_OPTIONS[0];
+  const testQuestions = selectedTest.questions;
+  const sections = useMemo(
+    () =>
+      SECTION_META.map((meta) => {
+        const numbers = testQuestions
+          .map((q, index) => (q.section === meta.id ? index + 1 : 0))
+          .filter((number) => number > 0);
+
+        return {
+          ...meta,
+          start: numbers[0],
+          end: numbers[numbers.length - 1],
+        };
+      }),
+    [testQuestions]
+  );
+  const totalQuestions = testQuestions.length;
+  const question = testQuestions[current];
 
   // =========================================================
   // CURRENT SECTION
   // =========================================================
 
   const currentSection = useMemo(() => {
-    return getSectionByQuestionNumber(current + 1);
-  }, [current]);
+    return getSectionByQuestionNumber(current + 1, sections);
+  }, [current, sections]);
 
-  const isLastQuestion = current + 1 === questions.length;
+  const isLastQuestion = current + 1 === testQuestions.length;
 
   const canGoBack = current > 0;
 
@@ -160,10 +175,10 @@ export default function Home() {
   // =========================================================
 
   const answeredCount = useMemo(() => {
-    return questions.filter(
+    return testQuestions.filter(
       (q) => answers[q.id] !== undefined
     ).length;
-  }, [answers]);
+  }, [answers, testQuestions]);
 
   const unansweredCount =
     totalQuestions - answeredCount;
@@ -173,10 +188,10 @@ export default function Home() {
   // =========================================================
 
   const score = useMemo(() => {
-    return questions.reduce((total, q) => {
+    return testQuestions.reduce((total, q) => {
       return total + (answers[q.id] === q.answer ? 1 : 0);
     }, 0);
-  }, [answers]);
+  }, [answers, testQuestions]);
 
   const percentage =
     totalQuestions > 0
@@ -192,7 +207,7 @@ export default function Home() {
   // =========================================================
 
   const getSectionQuestions = (section: Section) =>
-    questions.filter((q) => q.section === section.id);
+    testQuestions.filter((q) => q.section === section.id);
 
   const getSectionAnsweredCount = (section: Section) => {
     return getSectionQuestions(section).filter(
@@ -504,11 +519,40 @@ export default function Home() {
               </h1>
 
               <p className="mt-2 text-blue-100">
-                JFT-Basic A2 — {TEST.name} · {totalQuestions}問
+                JFT-Basic A2 — {selectedTest.name} · {totalQuestions}問
               </p>
             </div>
 
             <div className="p-6">
+              <div className="mb-6">
+                <h2 className="font-bold text-slate-900 mb-3">
+                  Test variantini tanlang
+                </h2>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {TEST_OPTIONS.map((test) => (
+                    <button
+                      key={test.slug}
+                      type="button"
+                      aria-pressed={selectedTestSlug === test.slug}
+                      onClick={() => setSelectedTestSlug(test.slug)}
+                      className={`rounded-xl border p-4 text-left transition ${
+                        selectedTestSlug === test.slug
+                          ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500/20"
+                          : "border-slate-200 bg-white hover:border-blue-300"
+                      }`}
+                    >
+                      <span className="block font-bold text-slate-900">
+                        JFT-Basic A2 — {test.name}
+                      </span>
+                      <span className="block text-sm text-slate-500 mt-1">
+                        {test.questions.length} ta savol · 60 daqiqa
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* INFO CARDS */}
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -524,7 +568,7 @@ export default function Home() {
 
                 <InfoCard
                   title="SECTION"
-                  value={String(SECTIONS.length)}
+                  value={String(sections.length)}
                 />
 
                 <InfoCard
@@ -541,7 +585,7 @@ export default function Home() {
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-3">
-                  {SECTIONS.map((section) => (
+                  {sections.map((section) => (
                     <div
                       key={section.id}
                       className="rounded-xl border border-slate-200 bg-slate-50 p-4"
@@ -667,7 +711,7 @@ export default function Home() {
 
             <div className="bg-blue-600 text-white px-6 py-8 text-center">
               <p className="text-sm opacity-90">
-                JFT-Basic A2 — {TEST.name}
+                JFT-Basic A2 — {selectedTest.name}
               </p>
 
               <h1 className="text-2xl sm:text-3xl font-bold mt-1">
@@ -762,7 +806,7 @@ export default function Home() {
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-3">
-                  {SECTIONS.map((section) => {
+                  {sections.map((section) => {
                     const sectionQuestions =
                       getSectionQuestions(section);
 
@@ -834,7 +878,7 @@ export default function Home() {
                 </h2>
 
                 <div className="space-y-3">
-                  {questions.map((q, index) => {
+                  {testQuestions.map((q, index) => {
                     const userAnswer =
                       answers[q.id];
 
@@ -843,13 +887,14 @@ export default function Home() {
 
                     const section =
                       getSectionByQuestionNumber(
-                        index + 1
+                        index + 1,
+                        sections
                       );
 
                     const showPassage =
                       q.passage &&
                       q.passage !==
-                        questions[index - 1]?.passage;
+                        testQuestions[index - 1]?.passage;
 
                     return (
                       <div
@@ -1099,7 +1144,7 @@ export default function Home() {
           {/* SECTION PROGRESS */}
 
           <div className="grid grid-cols-4 gap-1 mt-3">
-            {SECTIONS.map((section) => {
+            {sections.map((section) => {
               const active =
                 section.id === currentSection.id;
 
@@ -1314,7 +1359,7 @@ export default function Home() {
             {/* SECTION LIST */}
 
             <div className="space-y-4">
-              {SECTIONS.map((section) => {
+              {sections.map((section) => {
                 const active =
                   section.id === currentSection.id;
 
@@ -1345,7 +1390,7 @@ export default function Home() {
                     </div>
 
                     <div className="grid grid-cols-6 gap-2">
-                      {questions
+                      {testQuestions
                         .map((q, index) => ({
                           q,
                           index,

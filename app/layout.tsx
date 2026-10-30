@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "JFT-Basic A2 Mock Test",
-  description: "JFT-Basic A2 (国際交流基金日本語基礎テスト) mock test — 48 savol, 60 daqiqa",
+  description: "JFT-Basic A2 (国際交流基金日本語基礎テスト) mock tests — har biri 48 savol, 60 daqiqa",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
