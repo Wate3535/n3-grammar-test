@@ -275,6 +275,7 @@ export const questions3: Question[] = [
     question: "女の人は店で何を買いますか。",
     options: ["かさ", "ぼうし", "くつ", "かばん"],
     answer: 0,
+    audio: "/audio/test-3/25.mp3",
     script: [
       { speaker: "M", text: "その帽子、買うんですか。" },
       { speaker: "F", text: "いいえ、今日は雨が降りそうですから、傘を買います。" },
@@ -288,6 +289,7 @@ export const questions3: Question[] = [
     question: "二人は何時に駅で会いますか。",
     options: ["6時", "6時半", "7時", "7時半"],
     answer: 1,
+    audio: "/audio/test-3/26.mp3",
     script: [
       { speaker: "F", text: "明日の映画、何時に始まりますか。" },
       { speaker: "M", text: "7時です。駅で会ってから行きましょう。" },
@@ -302,6 +304,7 @@ export const questions3: Question[] = [
     question: "男の人はいつ会社を出ますか。",
     options: ["今日の午後", "明日の朝", "明日の午後", "今日の朝"],
     answer: 2,
+    audio: "/audio/test-3/27.mp3",
     script: [
       { speaker: "F", text: "明日の出張は何時に出ますか。" },
       { speaker: "M", text: "朝は会議があるので、午後2時ごろ会社を出ます。" },
@@ -316,6 +319,7 @@ export const questions3: Question[] = [
     question: "女の人はどうして遅れましたか。",
     options: ["バスが来なかったから", "道に迷ったから", "電車が遅れたから", "寝坊したから"],
     answer: 2,
+    audio: "/audio/test-3/28.mp3",
     script: [
       { speaker: "M", text: "遅かったですね。何かありましたか。" },
       { speaker: "F", text: "すみません。電車が駅と駅の間で止まってしまったんです。" },
@@ -330,6 +334,7 @@ export const questions3: Question[] = [
     question: "男の人は何を注文しますか。",
     options: ["コーヒーとケーキ", "紅茶とサンドイッチ", "コーヒーとサンドイッチ", "紅茶とケーキ"],
     answer: 3,
+    audio: "/audio/test-3/29.mp3",
     script: [
       { speaker: "F", text: "ご注文はお決まりですか。" },
       { speaker: "M", text: "紅茶とケーキをお願いします。" },
@@ -343,6 +348,7 @@ export const questions3: Question[] = [
     question: "男の人は何時に朝ごはんを食べますか。",
     options: ["6時", "6時半", "7時", "7時半"],
     answer: 2,
+    audio: "/audio/test-3/30.mp3",
     script: [
       { speaker: "M", text: "朝ごはんは何時からですか。" },
       { speaker: "F", text: "6時半から9時までです。" },
@@ -357,6 +363,7 @@ export const questions3: Question[] = [
     question: "女の人は忘れ物をどこで受け取りますか。",
     options: ["駅の事務室", "ホテルの入口", "バスの中", "警察署"],
     answer: 0,
+    audio: "/audio/test-3/31.mp3",
     script: [
       { speaker: "F", text: "電車にかばんを忘れてしまいました。" },
       { speaker: "M", text: "どの電車に乗りましたか。" },
@@ -371,6 +378,7 @@ export const questions3: Question[] = [
     question: "何人で予約しましたか。",
     options: ["2人", "3人", "4人", "5人"],
     answer: 2,
+    audio: "/audio/test-3/32.mp3",
     script: [
       { speaker: "F", text: "お電話ありがとうございます。何名様ですか。" },
       { speaker: "M", text: "はじめは3人でしたが、友だちが一人来ることになりました。" },
@@ -385,6 +393,7 @@ export const questions3: Question[] = [
     question: "次の電車は何番線から出ますか。",
     options: ["1番線", "2番線", "3番線", "4番線"],
     answer: 2,
+    audio: "/audio/test-3/33.mp3",
     script: [
       { speaker: "F", text: "お客様にお知らせします。東京行きの電車は、事故のため3番線から出ます。" },
       { speaker: "F", text: "次の電車は、午後4時15分に出発します。" },
@@ -397,6 +406,7 @@ export const questions3: Question[] = [
     question: "客はどうしたらいいですか。",
     options: ["レジでカードを作る", "入口で名前を書く", "店員に電話する", "商品を受付に持っていく"],
     answer: 0,
+    audio: "/audio/test-3/34.mp3",
     script: [
       { speaker: "M", text: "ポイントカードをお持ちでないお客様にお知らせします。" },
       { speaker: "M", text: "カードをお作りになる方は、レジでお名前を書いてください。すぐにお作りします。" },
@@ -409,6 +419,7 @@ export const questions3: Question[] = [
     question: "図書館はいつ休みですか。",
     options: ["今週の月曜日", "今週の火曜日", "来週の月曜日", "来週の火曜日"],
     answer: 1,
+    audio: "/audio/test-3/35.mp3",
     script: [
       { speaker: "F", text: "図書館からのお知らせです。今週は月曜日も開館します。" },
       { speaker: "F", text: "かわりに、火曜日は休みますので、ご注意ください。" },
@@ -421,6 +432,7 @@ export const questions3: Question[] = [
     question: "プールに入る前に、何をしなければなりませんか。",
     options: ["受付でお金を払う", "水を飲む", "シャワーを浴びる", "くつを買う"],
     answer: 2,
+    audio: "/audio/test-3/36.mp3",
     script: [
       { speaker: "M", text: "プールを利用する方にお願いします。" },
       { speaker: "M", text: "プールに入る前に、必ずシャワーを浴びてください。水泳帽は受付で借りることができます。" },

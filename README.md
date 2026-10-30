@@ -2,7 +2,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## JFT-Basic A2 mock tests
 
-The app includes mock tests 2 and 3. Choose a test on the start screen before entering your name. Each test has 48 questions across four sections and a 60-minute timer. Listening questions in test 3 use the Japanese voice available in the browser.
+The app includes mock tests 2 and 3. Choose a test on the start screen before entering your name. Each test has 48 questions across four sections and a 60-minute timer. Test 3 includes its own recorded MP3 for each of the 12 listening questions.
 
 Test 3 is original practice material, not an official JFT-Basic test. Its scaled score is an estimate.
 

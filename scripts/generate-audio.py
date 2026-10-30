@@ -15,6 +15,7 @@ Natija: har bir savolning `audio` maydonidagi yo'l (public/ ichida).
 import asyncio
 import json
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -35,9 +36,12 @@ GAP_LINE = 0.7  # replikalar orasidagi pauza (s)
 GAP_SECTION = 1.5  # savol va dialog orasidagi pauza (s)
 
 
-def load_questions():
+def load_questions(test_slug: str):
+    if test_slug not in {"test-2", "test-3"}:
+        raise ValueError(f"Unknown test: {test_slug}")
+
     result = subprocess.run(
-        "npx tsx scripts/export-questions.ts",
+        f"npx tsx scripts/export-questions.ts {test_slug}",
         cwd=ROOT,
         capture_output=True,
         check=True,
@@ -102,14 +106,15 @@ async def build(question: dict, number: int, tmp: Path):
 
 
 async def main():
-    questions = load_questions()
+    test_slug = sys.argv[1] if len(sys.argv) > 1 else "test-2"
+    questions = load_questions(test_slug)
 
     for number, question in enumerate(questions, start=1):
         if not question.get("script") or not question.get("audio"):
             continue
         with tempfile.TemporaryDirectory() as tmp:
             await build(question, number, Path(tmp))
-        print(f"✓ {question['audio']}")
+        print(question["audio"])
 
 
 if __name__ == "__main__":
