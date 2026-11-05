@@ -2,7 +2,7 @@
 //   pdf/JFT-Basic-A2-<slug>-savollar.pdf — faqat savollar
 //   pdf/JFT-Basic-A2-<slug>-javoblar.pdf — javoblar kaliti, skriptlar bilan
 //
-// Ishga tushirish: npx tsx scripts/make-pdf.ts
+// Ishga tushirish: npx tsx scripts/make-pdf.ts <test-slug>   (masalan: test-7)
 // Chrome yoki Edge o'rnatilgan bo'lishi kerak (CHROME_PATH bilan ham berish mumkin).
 
 import { execFileSync } from "node:child_process";
@@ -10,7 +10,26 @@ import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { questions, TEST, type GlossaryItem, type Question } from "../questions";
+import {
+  questions as questions2,
+  TEST as TEST_2,
+  type GlossaryItem,
+  type Question,
+} from "../questions";
+import { questions3, TEST_3 } from "../questions-test-3";
+import { questions7, TEST_7 } from "../questions-test-7";
+
+const TESTS = [
+  { ...TEST_2, questions: questions2 },
+  { ...TEST_3, questions: questions3 },
+  { ...TEST_7, questions: questions7 },
+];
+
+const testSlug = process.argv[2] ?? TEST_2.slug;
+const found = TESTS.find((test) => test.slug === testSlug);
+if (!found) throw new Error(`Unknown test: ${testSlug}`);
+const TEST = found;
+const { questions } = TEST;
 
 const ROOT = resolve(__dirname, "..");
 const OUT_DIR = join(ROOT, "pdf");

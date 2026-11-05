@@ -37,7 +37,7 @@ GAP_SECTION = 1.5  # savol va dialog orasidagi pauza (s)
 
 
 def load_questions(test_slug: str):
-    if test_slug not in {"test-2", "test-3"}:
+    if test_slug not in {"test-2", "test-3", "test-7"}:
         raise ValueError(f"Unknown test: {test_slug}")
 
     result = subprocess.run(
