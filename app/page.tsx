@@ -17,6 +17,7 @@ import {
 } from "@/questions";
 import { questions3, TEST_3 } from "@/questions-test-3";
 import { questions7, TEST_7 } from "@/questions-test-7";
+import { questions8, TEST_8 } from "@/questions-test-8";
 
 // =========================================================
 // JFT-BASIC A2 SETTINGS
@@ -42,6 +43,7 @@ type Section = {
 };
 
 const TEST_OPTIONS = [
+  { ...TEST_8, questions: questions8 },
   { ...TEST_7, questions: questions7 },
   { ...TEST_3, questions: questions3 },
   { ...TEST, questions },
@@ -127,7 +129,7 @@ function renderMarked(text: string): ReactNode {
 export default function Home() {
   const [state, setState] = useState<ExamState>("start");
 
-  const [selectedTestSlug, setSelectedTestSlug] = useState(TEST_7.slug);
+  const [selectedTestSlug, setSelectedTestSlug] = useState(TEST_8.slug);
   const [name, setName] = useState("");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});

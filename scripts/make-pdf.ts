@@ -18,11 +18,13 @@ import {
 } from "../questions";
 import { questions3, TEST_3 } from "../questions-test-3";
 import { questions7, TEST_7 } from "../questions-test-7";
+import { questions8, TEST_8 } from "../questions-test-8";
 
 const TESTS = [
   { ...TEST_2, questions: questions2 },
   { ...TEST_3, questions: questions3 },
   { ...TEST_7, questions: questions7 },
+  { ...TEST_8, questions: questions8 },
 ];
 
 const testSlug = process.argv[2] ?? TEST_2.slug;

@@ -2,6 +2,7 @@
 import { questions } from "../questions";
 import { questions3 } from "../questions-test-3";
 import { questions7 } from "../questions-test-7";
+import { questions8 } from "../questions-test-8";
 
 const testSlug = process.argv[2] ?? "test-2";
 const testQuestions =
@@ -11,6 +12,8 @@ const testQuestions =
       ? questions3
       : testSlug === "test-7"
         ? questions7
+        : testSlug === "test-8"
+          ? questions8
         : undefined;
 
 if (!testQuestions) {
