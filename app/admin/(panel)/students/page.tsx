@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card, ErrorBox, NotConfigured, PageTitle } from "@/components/admin/ui";
 import { formatDate, levelLabel, percent, requireAdmin } from "@/lib/admin";
 import { getSupabase, type AttemptRow, type StudentRow } from "@/lib/supabase";
+import { telegramLink } from "@/lib/telegram";
 
 type AttemptSummary = Pick<
   AttemptRow,
@@ -73,7 +74,7 @@ export default async function StudentsPage({
         <input
           name="q"
           defaultValue={search}
-          placeholder="Ism yoki telefon bo‘yicha qidirish"
+          placeholder="Ism yoki Telegram nik bo‘yicha qidirish"
           className="h-11 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-sm outline-none focus:border-slate-900"
         />
         <button className="h-11 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white hover:bg-slate-800">
@@ -90,7 +91,7 @@ export default async function StudentsPage({
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
                   <th className="px-5 py-3">Ism</th>
-                  <th className="px-2 py-3">Telefon</th>
+                  <th className="px-2 py-3">Telegram</th>
                   <th className="px-2 py-3">Urinishlar</th>
                   <th className="px-2 py-3">O‘rtacha</th>
                   <th className="px-2 py-3">Oxirgi natija</th>
@@ -114,7 +115,16 @@ export default async function StudentsPage({
                           {student.name}
                         </Link>
                       </td>
-                      <td className="px-2 py-3 whitespace-nowrap text-slate-600">{student.phone}</td>
+                      <td className="px-2 py-3 whitespace-nowrap">
+                        <a
+                          href={telegramLink(student.phone)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {student.phone}
+                        </a>
+                      </td>
                       <td className="px-2 py-3">{list.length}</td>
                       <td className="px-2 py-3 font-semibold">{list.length ? `${percent(correct, total)}%` : "—"}</td>
                       <td className="px-2 py-3 whitespace-nowrap">

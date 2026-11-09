@@ -33,6 +33,7 @@ export type AccessCodeRow = {
 export type StudentRow = {
   id: string;
   name: string;
+  // Ustun nomi "phone", lekin unda Telegram nik saqlanadi ("@ali_valiyev").
   phone: string;
   created_at: string;
   last_seen_at: string;

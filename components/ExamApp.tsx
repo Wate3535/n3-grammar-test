@@ -16,6 +16,7 @@ import {
   type LevelId,
   type SectionMeta,
 } from "@/lib/levels";
+import { normalizeTelegram } from "@/lib/telegram";
 import type { GlossaryItem, Question } from "@/questions";
 
 // =========================================================
@@ -96,7 +97,7 @@ export default function ExamApp({
 
   const [selectedTestSlug, setSelectedTestSlug] = useState(tests[0]?.slug ?? "");
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [telegram, setTelegram] = useState("");
   const [formError, setFormError] = useState("");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -391,7 +392,7 @@ export default function ExamApp({
       const result = await saveAttempt({
         testSlug: selectedTest.slug,
         name,
-        phone,
+        telegram,
         answers,
         warnings,
         durationSec: durationRef.current,
@@ -409,7 +410,7 @@ export default function ExamApp({
         error: "Internet bilan bog‘lanib bo‘lmadi.",
       });
     }
-  }, [selectedTest, name, phone, answers, warnings, finishReason]);
+  }, [selectedTest, name, telegram, answers, warnings, finishReason]);
 
   useEffect(() => {
     if (state !== "finished" || save.status !== "idle") return;
@@ -428,9 +429,8 @@ export default function ExamApp({
       return;
     }
 
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length < 9 || digits.length > 15) {
-      setFormError("Telefon raqamingizni to‘liq kiriting (masalan: +998 90 123 45 67).");
+    if (!normalizeTelegram(telegram)) {
+      setFormError("Telegram nikingizni kiriting (masalan: @ali_valiyev). Faqat lotin harflari, raqam va _ — 5 tadan 32 tagacha belgi.");
       return;
     }
 
@@ -520,7 +520,7 @@ export default function ExamApp({
   // RESTART
   // =========================================================
 
-  // Ism va telefon saqlanib qoladi — o'quvchi keyingi testni darrov boshlaydi.
+  // Ism va Telegram nik saqlanib qoladi — o'quvchi keyingi testni darrov boshlaydi.
   const restartExam = () => {
     setState("start");
     setSave({ status: "idle" });
@@ -748,24 +748,25 @@ export default function ExamApp({
               />
 
               <label className="block text-sm font-semibold text-slate-700 mb-2 mt-4">
-                Telefon raqami
+                Telegram nik
               </label>
 
               <input
-                value={phone}
+                value={telegram}
                 onChange={(event) =>
-                  setPhone(event.target.value)
+                  setTelegram(event.target.value)
                 }
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
                     startExam();
                   }
                 }}
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                maxLength={20}
-                placeholder="+998 90 123 45 67"
+                autoComplete="off"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                maxLength={45}
+                placeholder="@ali_valiyev"
                 className="w-full h-12 rounded-xl border border-slate-300 px-4 text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />
 

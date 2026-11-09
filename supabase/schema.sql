@@ -22,7 +22,8 @@ insert into public.access_codes (level, code) values
   ('n5',  '9157')
 on conflict (level) do nothing;
 
--- 2. O'quvchilar (telefon raqami bo'yicha bitta yozuv).
+-- 2. O'quvchilar (Telegram nik bo'yicha bitta yozuv).
+--    "phone" ustunida Telegram nik saqlanadi, masalan "@ali_valiyev".
 create table if not exists public.students (
   id uuid primary key default gen_random_uuid(),
   name text not null,

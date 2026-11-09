@@ -19,6 +19,7 @@ import {
 } from "@/lib/jlpt";
 import { LEVELS, type LevelId } from "@/lib/levels";
 import { scoreAttempt } from "@/lib/scoring";
+import { normalizeTelegram } from "@/lib/telegram";
 import type { GlossaryItem, Question } from "@/questions";
 
 // =========================================================
@@ -28,7 +29,6 @@ import type { GlossaryItem, Question } from "@/questions";
 //   • Imtihon paytida lug'at yo'q — u natijalar tahlilida ko'rsatiladi
 // =========================================================
 
-const MAX_WARNINGS = 3;
 const SOUND_CHECK = "/audio/jlpt-sound-check.mp3";
 
 type Phase = "start" | "paper" | "between" | "finished";
@@ -89,7 +89,7 @@ export default function JlptExamApp({
   const [phase, setPhase] = useState<Phase>("start");
   const [selectedSlug, setSelectedSlug] = useState(tests[0]?.slug ?? "");
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [telegram, setTelegram] = useState("");
   const [formError, setFormError] = useState("");
 
   const [paperIdx, setPaperIdx] = useState(0);
@@ -98,9 +98,6 @@ export default function JlptExamApp({
   const [timeLeft, setTimeLeft] = useState(0);
   const [timeUp, setTimeUp] = useState(false);
 
-  const [warnings, setWarnings] = useState(0);
-  const [showWarning, setShowWarning] = useState(false);
-  const [warningText, setWarningText] = useState("");
 
   const [finishReason, setFinishReason] = useState<AttemptInput["finishReason"]>("manual");
   const [save, setSave] = useState<SaveState>({ status: "idle" });
@@ -130,7 +127,6 @@ export default function JlptExamApp({
     durationRef.current = Math.round((Date.now() - startedAtRef.current) / 1000);
     setFinishReason(reason);
     setPhase("finished");
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   }, []);
 
   // Qism tugadi (o'zi yoki vaqt tugashi bilan) → keyingi qism oldidan tanaffus.
@@ -157,39 +153,7 @@ export default function JlptExamApp({
     window.scrollTo({ top: 0 });
   };
 
-  // ---------------- warnings ----------------
-
-  const addWarning = useCallback(
-    (message: string) => {
-      setWarnings((previous) => {
-        if (previous >= MAX_WARNINGS) return previous;
-        const next = previous + 1;
-        setWarningText(message);
-        setShowWarning(true);
-        if (next >= MAX_WARNINGS) {
-          setTimeout(() => {
-            setShowWarning(false);
-            finishExam("warnings");
-          }, 1800);
-        }
-        return next;
-      });
-    },
-    [finishExam]
-  );
-
   const inExam = phase === "paper" || phase === "between";
-
-  useEffect(() => {
-    if (!inExam) return;
-    const onVisibility = () => {
-      if (document.visibilityState === "hidden") {
-        addWarning("Test oynasidan chiqdingiz. Boshqa tab yoki dasturga o‘tish qayd qilindi.");
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, [inExam, addWarning]);
 
   useEffect(() => {
     if (!inExam) return;
@@ -241,9 +205,9 @@ export default function JlptExamApp({
       const response = await saveAttempt({
         testSlug: test.slug,
         name,
-        phone,
+        telegram,
         answers,
-        warnings,
+        warnings: 0,
         durationSec: durationRef.current,
         finishReason,
       });
@@ -251,7 +215,7 @@ export default function JlptExamApp({
     } catch {
       setSave({ status: "error", error: "Internet bilan bog‘lanib bo‘lmadi." });
     }
-  }, [test, name, phone, answers, warnings, finishReason]);
+  }, [test, name, telegram, answers, finishReason]);
 
   useEffect(() => {
     if (phase !== "finished" || save.status !== "idle") return;
@@ -265,34 +229,26 @@ export default function JlptExamApp({
   const select = (questionId: number, option: number) =>
     setAnswers((previous) => ({ ...previous, [questionId]: option }));
 
-  const begin = async () => {
+  const begin = () => {
     if (name.trim().length < 2) {
       setFormError("Ism va familiyangizni kiriting.");
       return;
     }
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length < 9 || digits.length > 15) {
-      setFormError("Telefon raqamingizni to‘liq kiriting (masalan: +998 90 123 45 67).");
+    if (!normalizeTelegram(telegram)) {
+      setFormError("Telegram nikingizni kiriting (masalan: @ali_valiyev). Faqat lotin harflari, raqam va _ — 5 tadan 32 tagacha belgi.");
       return;
     }
     setFormError("");
     setAnswers({});
-    setWarnings(0);
     setSave({ status: "idle" });
     startedAtRef.current = Date.now();
     startPaper(0);
-    try {
-      await document.documentElement.requestFullscreen();
-    } catch {
-      // Fullscreen ishlamasa ham test davom etadi.
-    }
   };
 
   const restart = () => {
     setPhase("start");
     setSave({ status: "idle" });
     setAnswers({});
-    setWarnings(0);
     setPaperIdx(0);
     setCurrent(0);
   };
@@ -326,9 +282,9 @@ export default function JlptExamApp({
         selectedSlug={test.slug}
         onSelect={setSelectedSlug}
         name={name}
-        phone={phone}
+        telegram={telegram}
         onName={setName}
-        onPhone={setPhone}
+        onTelegram={setTelegram}
         error={formError}
         onBegin={begin}
       />
@@ -351,9 +307,6 @@ export default function JlptExamApp({
     );
   }
 
-  const warningModal = showWarning && (
-    <WarningModal text={warningText} warnings={warnings} onClose={() => setShowWarning(false)} />
-  );
 
   if (phase === "between") {
     const next = spec.papers[paperIdx + 1];
@@ -394,7 +347,6 @@ export default function JlptExamApp({
             </button>
           </div>
         </div>
-        {warningModal}
       </main>
     );
   }
@@ -411,11 +363,9 @@ export default function JlptExamApp({
           all={questions}
           items={paperQuestions}
           answers={answers}
-          warnings={warnings}
           onAnswer={select}
           onFinish={() => finishExam("manual")}
         />
-        {warningModal}
       </>
     );
   }
@@ -436,7 +386,6 @@ export default function JlptExamApp({
         answers={answers}
         onAnswer={select}
         timeLeft={timeLeft}
-        warnings={warnings}
         isLastPaper={paperIdx === spec.papers.length - 1}
         onEnd={() => {
           const unanswered = paperQuestions.filter(({ q }) => answers[q.id] === undefined).length;
@@ -446,7 +395,6 @@ export default function JlptExamApp({
           if (window.confirm(message)) endPaper(false);
         }}
       />
-      {warningModal}
     </>
   );
 }
@@ -462,9 +410,9 @@ function StartScreen({
   selectedSlug,
   onSelect,
   name,
-  phone,
+  telegram,
   onName,
-  onPhone,
+  onTelegram,
   error,
   onBegin,
 }: {
@@ -474,9 +422,9 @@ function StartScreen({
   selectedSlug: string;
   onSelect: (slug: string) => void;
   name: string;
-  phone: string;
+  telegram: string;
   onName: (value: string) => void;
-  onPhone: (value: string) => void;
+  onTelegram: (value: string) => void;
   error: string;
   onBegin: () => void;
 }) {
@@ -578,7 +526,6 @@ function StartScreen({
                 • O‘tish uchun umumiy ball {config.passScore} dan yuqori bo‘lishi va har bir bo‘limda 基準点 (minimal ball) olinishi kerak.
               </p>
               <p>• Imtihon paytida lug‘at ko‘rsatilmaydi — kanji ma’nolari natijalar tahlilida chiqadi.</p>
-              <p>• Boshqa tab yoki dasturga o‘tmang — 3 ta warningdan keyin test avtomatik yakunlanadi.</p>
               <p>• Quloqchin (naushnik) tayyorlang. Natijangiz o‘qituvchingizga saqlanadi.</p>
             </div>
           </div>
@@ -592,16 +539,17 @@ function StartScreen({
             placeholder="Masalan: Ali Valiyev"
             className="w-full h-12 rounded-xl border border-slate-300 px-4 text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
           />
-          <label className="block text-sm font-semibold text-slate-700 mb-2 mt-4">Telefon raqami</label>
+          <label className="block text-sm font-semibold text-slate-700 mb-2 mt-4">Telegram nik</label>
           <input
-            value={phone}
-            onChange={(event) => onPhone(event.target.value)}
+            value={telegram}
+            onChange={(event) => onTelegram(event.target.value)}
             onKeyDown={(event) => event.key === "Enter" && onBegin()}
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            maxLength={20}
-            placeholder="+998 90 123 45 67"
+            autoComplete="off"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            maxLength={45}
+            placeholder="@ali_valiyev"
             className="w-full h-12 rounded-xl border border-slate-300 px-4 text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
           />
           {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
@@ -632,7 +580,6 @@ function PaperView({
   answers,
   onAnswer,
   timeLeft,
-  warnings,
   isLastPaper,
   onEnd,
 }: {
@@ -646,7 +593,6 @@ function PaperView({
   answers: Record<number, number>;
   onAnswer: (questionId: number, option: number) => void;
   timeLeft: number;
-  warnings: number;
   isLastPaper: boolean;
   onEnd: () => void;
 }) {
@@ -793,12 +739,6 @@ function PaperView({
               </div>
             ))}
           </div>
-          <div className="mt-5 pt-5 border-t border-slate-200 flex items-center justify-between">
-            <span className="text-xs text-slate-500">Warning</span>
-            <span className={`font-bold ${warnings >= 2 ? "text-red-600" : "text-slate-800"}`}>
-              {warnings} / {MAX_WARNINGS}
-            </span>
-          </div>
           <button onClick={onEnd} className="w-full h-11 mt-5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold">
             {isLastPaper ? "Testni yakunlash" : "Qismni yakunlash"}
           </button>
@@ -827,7 +767,6 @@ function ListeningSession({
   all,
   items,
   answers,
-  warnings,
   onAnswer,
   onFinish,
 }: {
@@ -837,7 +776,6 @@ function ListeningSession({
   all: Question[];
   items: Indexed[];
   answers: Record<number, number>;
-  warnings: number;
   onAnswer: (questionId: number, option: number) => void;
   onFinish: () => void;
 }) {
@@ -1089,12 +1027,6 @@ function ListeningSession({
                   </div>
                 </div>
               ))}
-            </div>
-            <div className="mt-5 pt-5 border-t border-slate-200 flex items-center justify-between">
-              <span className="text-xs text-slate-500">Warning</span>
-              <span className={`font-bold ${warnings >= 2 ? "text-red-600" : "text-slate-800"}`}>
-                {warnings} / {MAX_WARNINGS}
-              </span>
             </div>
             <p className="text-[11px] text-slate-400 mt-3">
               聴解 audio tugashi bilan test avtomatik yakunlanadi.
@@ -1430,40 +1362,6 @@ function InfoCard({ title, value }: { title: string; value: string }) {
     <div className="rounded-xl bg-blue-50 border border-blue-100 p-4">
       <p className="text-xs text-blue-600 font-semibold">{title}</p>
       <p className="text-xl font-bold text-blue-900 mt-1 whitespace-nowrap">{value}</p>
-    </div>
-  );
-}
-
-function WarningModal({
-  text,
-  warnings,
-  onClose,
-}: {
-  text: string;
-  warnings: number;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-100 bg-black/60 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <div className="bg-red-600 text-white px-6 py-5">
-          <p className="text-sm font-semibold">DIQQAT!</p>
-          <h2 className="text-2xl font-bold mt-1">Test qoidasi buzildi</h2>
-        </div>
-        <div className="p-6">
-          <p className="text-slate-700 leading-relaxed">{text}</p>
-          <p className="mt-4 text-xl font-bold text-red-700">
-            Warning: {warnings} / {MAX_WARNINGS}
-          </p>
-          {warnings >= MAX_WARNINGS ? (
-            <p className="mt-4 text-sm font-semibold text-red-600">3 ta warning olindi. Test avtomatik yakunlanadi.</p>
-          ) : (
-            <button onClick={onClose} className="w-full h-11 mt-5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold">
-              Tushundim
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

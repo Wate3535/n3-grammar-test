@@ -33,7 +33,7 @@ Boshlang‘ich kodlar: JFT `7391`, N3 `4826`, N4 `2564`, N5 `9157`. Ularni admin
 `/admin`. Parol `ADMIN_PASSWORD` o‘zgaruvchisidan olinadi.
 
 - **Umumiy:** o‘quvchilar soni, urinishlar, darajalar bo‘yicha o‘rtacha natija va oxirgi natijalar.
-- **O‘quvchilar:** ism yoki telefon bo‘yicha qidirish. Har bir o‘quvchining urinishlari, bo‘limlar bo‘yicha natijasi va zaif savol turlari.
+- **O‘quvchilar:** ism yoki Telegram nik bo‘yicha qidirish. Har bir o‘quvchining urinishlari, bo‘limlar bo‘yicha natijasi va zaif savol turlari.
 - **Xatolar tahlili:** har bir test bo‘yicha savollarning xato foizi va eng ko‘p tanlangan noto‘g‘ri variant.
 - **Kodlar:** har bir darajaning 4 xonali kodi.
 

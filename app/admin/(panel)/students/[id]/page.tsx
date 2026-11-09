@@ -10,6 +10,7 @@ import {
   requireAdmin,
 } from "@/lib/admin";
 import { getSupabase, type AttemptRow, type StudentRow } from "@/lib/supabase";
+import { telegramLink } from "@/lib/telegram";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -49,8 +50,16 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
       <div className="mt-2">
         <PageTitle
           title={student.name}
-          subtitle={`${student.phone} · ro‘yxatdan o‘tgan: ${formatDate(student.created_at)}`}
+          subtitle={`Telegram: ${student.phone} · ro‘yxatdan o‘tgan: ${formatDate(student.created_at)}`}
         />
+        <a
+          href={telegramLink(student.phone)}
+          target="_blank"
+          rel="noreferrer"
+          className="-mt-4 mb-6 inline-block text-sm font-semibold text-blue-600 hover:underline"
+        >
+          Telegram’da yozish →
+        </a>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">

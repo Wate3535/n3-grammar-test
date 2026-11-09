@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { findLevelByCode } from "@/lib/access";
 import { LEVELS } from "@/lib/levels";
 import { scoreAttempt } from "@/lib/scoring";
-import { normalizePhone } from "@/lib/phone";
+import { normalizeTelegram } from "@/lib/telegram";
 import { clearStudentAccess, getStudentLevel, setStudentAccess } from "@/lib/session";
 import { getSupabase } from "@/lib/supabase";
 import { getTest } from "@/lib/tests";
@@ -51,7 +51,7 @@ export async function leaveExam() {
 export type AttemptInput = {
   testSlug: string;
   name: string;
-  phone: string;
+  telegram: string;
   answers: Record<number, number>;
   warnings: number;
   durationSec: number;
@@ -72,12 +72,12 @@ export async function saveAttempt(input: AttemptInput): Promise<SaveResult> {
   }
 
   const name = String(input.name ?? "").trim().replace(/\s+/g, " ");
-  const phone = normalizePhone(String(input.phone ?? ""));
+  const telegram = normalizeTelegram(String(input.telegram ?? ""));
   if (name.length < 2 || name.length > 80) {
     return { ok: false, error: "Ism noto‘g‘ri." };
   }
-  if (!phone) {
-    return { ok: false, error: "Telefon raqami noto‘g‘ri." };
+  if (!telegram) {
+    return { ok: false, error: "Telegram nik noto‘g‘ri." };
   }
 
   const config = LEVELS[level];
@@ -107,7 +107,8 @@ export async function saveAttempt(input: AttemptInput): Promise<SaveResult> {
 
   const { data: student, error: studentError } = await supabase
     .from("students")
-    .upsert({ name, phone, last_seen_at: new Date().toISOString() }, { onConflict: "phone" })
+    // "phone" ustunida o'quvchining Telegram niki saqlanadi (masalan, "@ali_valiyev").
+    .upsert({ name, phone: telegram, last_seen_at: new Date().toISOString() }, { onConflict: "phone" })
     .select("id")
     .single();
 
