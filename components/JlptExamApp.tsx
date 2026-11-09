@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import Image from "next/image";
 import { leaveExam, saveAttempt, type AttemptInput } from "@/app/actions";
 import type { ExamTest } from "@/components/ExamApp";
 import {
@@ -1100,11 +1101,24 @@ function ListeningCard({
         {reviewing && <span className="text-xs font-semibold text-amber-700">oldingi savol</span>}
       </div>
 
-      {q.image && (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 py-6 mb-4 text-center">
-          <p className="text-7xl">{q.image}</p>
-          {q.type === "発話表現" && <p className="text-xs text-slate-500 mt-2">→ の人は何と言いますか</p>}
+      {q.picture ? (
+        <div className="rounded-xl border border-slate-300 bg-white p-2 mb-4 max-w-md mx-auto">
+          <Image
+            src={q.picture}
+            alt="問題の絵"
+            width={768}
+            height={768}
+            priority
+            className="w-full h-auto rounded-lg"
+          />
         </div>
+      ) : (
+        q.image && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 py-6 mb-4 text-center">
+            <p className="text-7xl">{q.image}</p>
+            {q.type === "発話表現" && <p className="text-xs text-slate-500 mt-2">→ の人は何と言いますか</p>}
+          </div>
+        )
       )}
 
       {q.spoken ? (
@@ -1126,6 +1140,35 @@ function ListeningCard({
               </button>
             ))}
           </div>
+        </div>
+      ) : q.optionImages ? (
+        // 課題理解: real imtihondagidek rasmli variantlar (1〜4).
+        <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto">
+          {q.options.map((option, index) => (
+            <button
+              key={index}
+              onClick={() => onSelect(index)}
+              className={`relative rounded-xl border-2 p-2 text-left transition ${
+                selected === index ? "border-blue-600 bg-blue-50 ring-4 ring-blue-600/15" : "border-slate-200 bg-white hover:border-blue-300"
+              }`}
+            >
+              <span
+                className={`absolute left-2 top-2 z-10 w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                  selected === index ? "bg-blue-600 text-white" : "bg-white text-slate-800 border border-slate-400"
+                }`}
+              >
+                {index + 1}
+              </span>
+              <Image
+                src={q.optionImages![index]}
+                alt={option}
+                width={480}
+                height={480}
+                className="w-full h-auto rounded-lg"
+              />
+              <span className="block mt-1 text-center text-sm text-slate-700">{option}</span>
+            </button>
+          ))}
         </div>
       ) : (
         <div className="space-y-3">
@@ -1307,7 +1350,21 @@ function ResultScreen({
                             <p className="text-sm text-slate-800 leading-7 whitespace-pre-line">{q.passage}</p>
                           </div>
                         )}
-                        {q.image && <p className="text-4xl mb-2">{q.image}</p>}
+                        {q.picture ? (
+                          <Image src={q.picture} alt="問題の絵" width={768} height={768} className="w-full max-w-xs h-auto rounded-lg border border-slate-200 mb-2" />
+                        ) : (
+                          q.image && <p className="text-4xl mb-2">{q.image}</p>
+                        )}
+                        {q.optionImages && (
+                          <div className="grid grid-cols-4 gap-2 max-w-md mb-2">
+                            {q.optionImages.map((src, i) => (
+                              <div key={src} className={`relative rounded-lg border-2 bg-white p-1 ${i === q.answer ? "border-green-500" : i === chosen ? "border-red-400" : "border-slate-200"}`}>
+                                <span className="absolute left-1 top-1 text-xs font-bold">{i + 1}</span>
+                                <Image src={src} alt={q.options[i]} width={480} height={480} className="w-full h-auto" />
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         {q.intro && <p className="text-sm text-slate-500">{q.intro}</p>}
                         {q.question && (
                           <p className="font-semibold text-slate-900 leading-relaxed whitespace-pre-line">{renderMarked(q.question)}</p>

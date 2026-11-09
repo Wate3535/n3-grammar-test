@@ -1,0 +1,170 @@
+{
+  "n5-1": {
+    "44": {
+      "options": {
+        "りんごと バナナ": "/images/n5-1/44-1.jpg",
+        "りんごだけ": "/images/n5-1/44-2.jpg",
+        "りんごと みかん": "/images/n5-1/44-3.jpg",
+        "みかんと バナナ": "/images/n5-1/44-4.jpg"
+      }
+    },
+    "45": {
+      "options": {
+        "えきの まえ": "/images/n5-1/45-1.jpg",
+        "きっさてん": "/images/n5-1/45-2.jpg",
+        "えきの なか": "/images/n5-1/45-3.jpg",
+        "がっこう": "/images/n5-1/45-4.jpg"
+      }
+    },
+    "47": {
+      "options": {
+        "おべんとうと のみもの": "/images/n5-1/47-1.jpg",
+        "えんぴつと かみ": "/images/n5-1/47-2.jpg",
+        "かみと のみもの": "/images/n5-1/47-3.jpg",
+        "えんぴつと おべんとう": "/images/n5-1/47-4.jpg"
+      }
+    },
+    "49": {
+      "options": {
+        "そうじと まど": "/images/n5-1/49-1.jpg",
+        "そうじと ごみすて": "/images/n5-1/49-2.jpg",
+        "まどと ごみすて": "/images/n5-1/49-3.jpg",
+        "そうじだけ": "/images/n5-1/49-4.jpg"
+      }
+    },
+    "57": {
+      "picture": "/images/n5-1/57.jpg"
+    },
+    "58": {
+      "picture": "/images/n5-1/58.jpg"
+    },
+    "59": {
+      "picture": "/images/n5-1/59.jpg"
+    },
+    "60": {
+      "picture": "/images/n5-1/60.jpg"
+    },
+    "61": {
+      "picture": "/images/n5-1/61.jpg"
+    }
+  },
+  "n4-1": {
+    "58": {
+      "options": {
+        "いすを ならべる": "/images/n4-1/58-1.jpg",
+        "プロジェクターを 準備する": "/images/n4-1/58-2.jpg",
+        "資料を コピーする": "/images/n4-1/58-3.jpg",
+        "山田さんを よぶ": "/images/n4-1/58-4.jpg"
+      }
+    },
+    "59": {
+      "options": {
+        "タクシー": "/images/n4-1/59-1.jpg",
+        "電車": "/images/n4-1/59-2.jpg",
+        "友だちの 車": "/images/n4-1/59-3.jpg",
+        "バス": "/images/n4-1/59-4.jpg"
+      }
+    },
+    "60": {
+      "options": {
+        "カメラと ノート": "/images/n4-1/60-1.jpg",
+        "カメラと 学生証": "/images/n4-1/60-2.jpg",
+        "ノートと ペンと 学生証": "/images/n4-1/60-3.jpg",
+        "ノートと ペンだけ": "/images/n4-1/60-4.jpg"
+      }
+    },
+    "62": {
+      "options": {
+        "紙に 名前と 住所を 書く": "/images/n4-1/62-1.jpg",
+        "写真を はる": "/images/n4-1/62-2.jpg",
+        "写真を とりに 行く": "/images/n4-1/62-3.jpg",
+        "あした もう 一度 来る": "/images/n4-1/62-4.jpg"
+      }
+    },
+    "63": {
+      "options": {
+        "青い シャツの Mサイズ": "/images/n4-1/63-1.jpg",
+        "白い シャツの Mサイズ": "/images/n4-1/63-2.jpg",
+        "青い シャツの Lサイズ": "/images/n4-1/63-3.jpg",
+        "白い シャツの Lサイズ": "/images/n4-1/63-4.jpg"
+      }
+    },
+    "64": {
+      "options": {
+        "いすの 横": "/images/n4-1/64-1.jpg",
+        "つくえの 上": "/images/n4-1/64-2.jpg",
+        "窓の 前": "/images/n4-1/64-3.jpg",
+        "ドアの 前": "/images/n4-1/64-4.jpg"
+      }
+    },
+    "73": {
+      "picture": "/images/n4-1/73.jpg"
+    },
+    "74": {
+      "picture": "/images/n4-1/74.jpg"
+    },
+    "75": {
+      "picture": "/images/n4-1/75.jpg"
+    },
+    "76": {
+      "picture": "/images/n4-1/76.jpg"
+    },
+    "77": {
+      "picture": "/images/n4-1/77.jpg"
+    }
+  },
+  "n3-1": {
+    "75": {
+      "options": {
+        "資料を印刷する": "/images/n3-1/75-1.jpg",
+        "いすを並べる": "/images/n3-1/75-2.jpg",
+        "参加者にメールを送る": "/images/n3-1/75-3.jpg",
+        "会場を予約する": "/images/n3-1/75-4.jpg"
+      }
+    },
+    "76": {
+      "options": {
+        "かぜ薬と目薬": "/images/n3-1/76-1.jpg",
+        "かぜ薬とマスク": "/images/n3-1/76-2.jpg",
+        "マスクと目薬": "/images/n3-1/76-3.jpg",
+        "かぜ薬だけ": "/images/n3-1/76-4.jpg"
+      }
+    },
+    "77": {
+      "options": {
+        "紙で先生に出す": "/images/n3-1/77-1.jpg",
+        "大学のホームページから出す": "/images/n3-1/77-2.jpg",
+        "メールで送る": "/images/n3-1/77-3.jpg",
+        "授業のときに出す": "/images/n3-1/77-4.jpg"
+      }
+    },
+    "79": {
+      "options": {
+        "申込書に記入する": "/images/n3-1/79-1.jpg",
+        "在留カードを取りに帰る": "/images/n3-1/79-2.jpg",
+        "利用者カードを見せる": "/images/n3-1/79-3.jpg",
+        "借りたい本を選ぶ": "/images/n3-1/79-4.jpg"
+      }
+    },
+    "80": {
+      "options": {
+        "紙皿とコップ": "/images/n3-1/80-1.jpg",
+        "紙皿だけ": "/images/n3-1/80-2.jpg",
+        "飲み物と紙皿": "/images/n3-1/80-3.jpg",
+        "肉と紙皿": "/images/n3-1/80-4.jpg"
+      }
+    },
+    "90": {
+      "picture": "/images/n3-1/90.jpg"
+    },
+    "91": {
+      "picture": "/images/n3-1/91.jpg"
+    },
+    "92": {
+      "picture": "/images/n3-1/92.jpg"
+    },
+    "93": {
+      "picture": "/images/n3-1/93.jpg"
+    }
+  }
+}

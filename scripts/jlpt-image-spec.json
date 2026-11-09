@@ -1,0 +1,157 @@
+{
+  "style": {
+    "option": "Simple clean black-and-white line drawing, like an answer-choice picture in a Japanese JLPT exam booklet. Thin even outlines, light gray shading only, plain white background, centered, no frame. Absolutely no text, letters, numbers or speech bubbles.",
+    "picture": "Simple clean black-and-white line drawing, like a picture in a Japanese JLPT listening exam booklet. Thin even outlines, light gray shading, plain white background. Japanese everyday setting. The only color is one bold solid red arrow. Absolutely no text, letters, numbers or speech bubbles."
+  },
+  "items": [
+    {
+      "slug": "n5-1", "id": 44, "kind": "options",
+      "options": {
+        "りんごと バナナ": "three red apples and a bunch of bananas, side by side",
+        "りんごだけ": "three apples only",
+        "りんごと みかん": "three apples and three small mandarin oranges, side by side",
+        "みかんと バナナ": "three small mandarin oranges and a bunch of bananas, side by side"
+      }
+    },
+    {
+      "slug": "n5-1", "id": 45, "kind": "options",
+      "options": {
+        "えきの まえ": "the front entrance of a small Japanese train station building seen from the street, with a few people",
+        "きっさてん": "a small cozy coffee shop with a cup of coffee on the table and a counter",
+        "えきの なか": "inside a Japanese train station: ticket gates and a platform sign",
+        "がっこう": "a Japanese school building with a school gate"
+      }
+    },
+    {
+      "slug": "n5-1", "id": 47, "kind": "options",
+      "options": {
+        "おべんとうと のみもの": "a Japanese bento lunch box and a plastic drink bottle, side by side",
+        "えんぴつと かみ": "two pencils and a few sheets of paper, side by side",
+        "かみと のみもの": "a few sheets of paper and a plastic drink bottle, side by side",
+        "えんぴつと おべんとう": "two pencils and a Japanese bento lunch box, side by side"
+      }
+    },
+    {
+      "slug": "n5-1", "id": 49, "kind": "options",
+      "options": {
+        "そうじと まど": "two small scenes side by side: a man vacuuming a room, and a man wiping a window with a cloth",
+        "そうじと ごみすて": "two small scenes side by side: a man vacuuming a room, and a man carrying a garbage bag to a garbage collection spot",
+        "まどと ごみすて": "two small scenes side by side: a man wiping a window with a cloth, and a man carrying a garbage bag to a garbage collection spot",
+        "そうじだけ": "a man vacuuming a room"
+      }
+    },
+    {
+      "slug": "n4-1", "id": 58, "kind": "options",
+      "options": {
+        "いすを ならべる": "a man arranging chairs in a row in a meeting room",
+        "プロジェクターを 準備する": "a man setting up a projector on a table, pointing at a screen",
+        "資料を コピーする": "a man making copies of documents at an office copy machine",
+        "山田さんを よぶ": "a man calling out and waving to a coworker across an office"
+      }
+    },
+    {
+      "slug": "n4-1", "id": 59, "kind": "options",
+      "options": {
+        "タクシー": "a Japanese taxi car on the road",
+        "電車": "a Japanese commuter train",
+        "友だちの 車": "a woman driving an ordinary private car with a friend in the passenger seat",
+        "バス": "a city bus on the road"
+      }
+    },
+    {
+      "slug": "n4-1", "id": 60, "kind": "options",
+      "options": {
+        "カメラと ノート": "a camera and a notebook, side by side",
+        "カメラと 学生証": "a camera and a student ID card with a small face photo, side by side",
+        "ノートと ペンと 学生証": "a notebook, a pen and a student ID card with a small face photo, side by side",
+        "ノートと ペンだけ": "a notebook and a pen, side by side"
+      }
+    },
+    {
+      "slug": "n4-1", "id": 62, "kind": "options",
+      "options": {
+        "紙に 名前と 住所を 書く": "a young man writing on an application form with a pen at a counter",
+        "写真を はる": "hands gluing a small ID photo onto a form",
+        "写真を とりに 行く": "a young man walking toward a small ID photo booth",
+        "あした もう 一度 来る": "a young man leaving an office through a door, with a wall calendar showing the next day circled"
+      }
+    },
+    {
+      "slug": "n4-1", "id": 63, "kind": "options",
+      "options": {
+        "青い シャツの Mサイズ": "a shirt drawn with dark gray fill (a dark colored shirt) and a medium-size label tag; the shirt is medium sized",
+        "白い シャツの Mサイズ": "a plain white shirt with no fill and a medium-size label tag; the shirt is medium sized",
+        "青い シャツの Lサイズ": "a larger shirt drawn with dark gray fill (a dark colored shirt); the shirt is noticeably big",
+        "白い シャツの Lサイズ": "a larger plain white shirt with no fill; the shirt is noticeably big"
+      }
+    },
+    {
+      "slug": "n4-1", "id": 64, "kind": "options",
+      "options": {
+        "いすの 横": "an office room: a cardboard box placed on the floor right next to a chair",
+        "つくえの 上": "an office room: a cardboard box placed on top of a desk",
+        "窓の 前": "an office room: a cardboard box placed on the floor in front of a window",
+        "ドアの 前": "an office room: a cardboard box placed on the floor in front of a door"
+      }
+    },
+    {
+      "slug": "n3-1", "id": 75, "kind": "options",
+      "options": {
+        "資料を印刷する": "a woman printing documents at an office printer",
+        "いすを並べる": "a woman arranging chairs in rows in a seminar room",
+        "参加者にメールを送る": "a woman typing an email on a laptop at her desk",
+        "会場を予約する": "a woman making a phone call to book a venue, looking at a calendar"
+      }
+    },
+    {
+      "slug": "n3-1", "id": 76, "kind": "options",
+      "options": {
+        "かぜ薬と目薬": "a box of cold medicine and a small eye drops bottle, side by side",
+        "かぜ薬とマスク": "a box of cold medicine and a disposable face mask, side by side",
+        "マスクと目薬": "a disposable face mask and a small eye drops bottle, side by side",
+        "かぜ薬だけ": "a box of cold medicine only"
+      }
+    },
+    {
+      "slug": "n3-1", "id": 77, "kind": "options",
+      "options": {
+        "紙で先生に出す": "a student handing printed paper pages to a teacher",
+        "大学のホームページから出す": "a laptop screen showing a university website upload page with an upload button icon",
+        "メールで送る": "a laptop screen showing an email with a paperclip attachment icon",
+        "授業のときに出す": "a student putting a report on the teacher's desk in a classroom during class"
+      }
+    },
+    {
+      "slug": "n3-1", "id": 79, "kind": "options",
+      "options": {
+        "申込書に記入する": "a man filling out an application form with a pen at a library counter",
+        "在留カードを取りに帰る": "a man walking home toward his apartment building",
+        "利用者カードを見せる": "a man showing a library card to a librarian",
+        "借りたい本を選ぶ": "a man choosing a book from a library bookshelf"
+      }
+    },
+    {
+      "slug": "n3-1", "id": 80, "kind": "options",
+      "options": {
+        "紙皿とコップ": "a stack of paper plates and a stack of paper cups, side by side",
+        "紙皿だけ": "a stack of paper plates only",
+        "飲み物と紙皿": "two plastic drink bottles and a stack of paper plates, side by side",
+        "肉と紙皿": "a pack of raw meat for barbecue and a stack of paper plates, side by side"
+      }
+    },
+    { "slug": "n5-1", "id": 57, "kind": "picture", "prompt": "A woman sitting at a table in a restaurant raises her hand to call a waiter who is standing a little away. The red arrow points at the woman." },
+    { "slug": "n5-1", "id": 58, "kind": "picture", "prompt": "A young woman hands a wrapped gift box to a young man; the man is receiving it happily. The red arrow points at the man." },
+    { "slug": "n5-1", "id": 59, "kind": "picture", "prompt": "At night on a street (moon in the sky), two young women are parting ways and waving goodbye. The red arrow points at the woman on the left." },
+    { "slug": "n5-1", "id": 60, "kind": "picture", "prompt": "A schoolboy with a school bag opens the front door of his house and steps inside; his mother is in the hallway. The red arrow points at the boy." },
+    { "slug": "n5-1", "id": 61, "kind": "picture", "prompt": "In a classroom, a female student points at a pen on the desk of her classmate sitting next to her, asking to borrow it. The red arrow points at the female student who is asking." },
+    { "slug": "n4-1", "id": 73, "kind": "picture", "prompt": "A young woman is struggling to carry a big heavy suitcase and bag; a young man next to her reaches out to help. The red arrow points at the man." },
+    { "slug": "n4-1", "id": 74, "kind": "picture", "prompt": "In a quiet library, a woman reading at a table turns politely to a man next to her who is talking loudly on his phone. The red arrow points at the woman." },
+    { "slug": "n4-1", "id": 75, "kind": "picture", "prompt": "A sick friend is lying in bed with a cold; a young man standing at the bedroom door is about to leave. The red arrow points at the standing man." },
+    { "slug": "n4-1", "id": 76, "kind": "picture", "prompt": "In front of a station clock, a woman arrives running and out of breath, bowing to a friend who has been waiting. The red arrow points at the woman who arrived late." },
+    { "slug": "n4-1", "id": 77, "kind": "picture", "prompt": "A tourist man holding a camera approaches a stranger at a sightseeing spot, wanting the stranger to take his photo. The red arrow points at the tourist man." },
+    { "slug": "n3-1", "id": 90, "kind": "picture", "prompt": "Inside a train, a young man sitting on a seat looks up at an elderly woman standing in front of him and starts to stand up. The red arrow points at the young man." },
+    { "slug": "n3-1", "id": 91, "kind": "picture", "prompt": "A businesswoman at her office desk is talking on the phone, holding a business card. The red arrow points at the woman." },
+    { "slug": "n3-1", "id": 92, "kind": "picture", "prompt": "A male student gives a bouquet of flowers to an older male teacher in a school hallway; there is a birthday cake on a nearby table. The red arrow points at the student." },
+    { "slug": "n3-1", "id": 93, "kind": "picture", "prompt": "In an office, a young female employee holds some documents and bows slightly to a busy senior colleague working at a computer. The red arrow points at the young female employee." }
+  ]
+}

@@ -107,7 +107,16 @@ function jlptBody(withAnswers: boolean) {
       const listening = q.section === 4;
       const number = listening ? `${numberInMondai(questions, index)}番` : String(position + 1);
       const hideOptions = listening && q.spoken && !withAnswers;
-      const options = hideOptions
+      const fileUrl = (src: string) => pathToFileURL(join(ROOT, "public", src)).href;
+      const picture = q.picture ? `<img class="picture" src="${fileUrl(q.picture)}">` : "";
+      const options = q.optionImages
+        ? `<div class="pics">${q.optionImages
+            .map((src, i) => {
+              const correct = withAnswers && i === q.answer;
+              return `<div class="pic${correct ? " correct" : ""}"><span class="num">${i + 1}</span><img src="${fileUrl(src)}">${withAnswers ? `<small>${escape(q.options[i])}${correct ? " ✓" : ""}</small>` : ""}</div>`;
+            })
+            .join("")}</div>`
+        : hideOptions
         ? `<p class="blank">（問題用紙に何も印刷されていません）</p>`
         : `<ol>${q.options
             .map((option, i) => {
@@ -128,7 +137,8 @@ function jlptBody(withAnswers: boolean) {
           : "";
 
       html += `<div class="question">
-        <p class="q"><span class="qnum">${number}</span>${q.image ? `<span class="image">${q.image}</span>` : ""}${text}</p>
+        <p class="q"><span class="qnum">${number}</span>${!q.picture && q.image ? `<span class="image">${q.image}</span>` : ""}${text}</p>
+        ${picture}
         ${options}
         ${script}
         ${withAnswers ? glossary(q.glossary) : ""}
@@ -212,6 +222,13 @@ function page(withAnswers: boolean) {
   h2.paper:first-of-type { break-before: auto; }
   .mondai { border: 2px solid #0f172a; padding: 6px 10px; margin: 14px 0 8px; font-size: 10.5pt; break-after: avoid; }
   .line { display: inline-block; width: 36px; border-bottom: 2px solid #0f172a; margin: 0 3px; }
+  .picture { display: block; width: 62mm; margin: 4px 0 6px 32px; border: 1px solid #cbd5e1; }
+  .pics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 4px 0 0 32px; }
+  .pic { position: relative; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; text-align: center; }
+  .pic img { width: 100%; display: block; }
+  .pic .num { position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; line-height: 16px; border: 1px solid #64748b; border-radius: 50%; font-size: 8.5pt; background: #fff; }
+  .pic small { font-size: 8pt; }
+  .pic.correct { border: 2px solid #16a34a; background: #dcfce7; }
   .blank { margin: 0 0 0 32px; color: #64748b; font-size: 9.5pt; }
 </style></head>
 <body>
@@ -254,6 +271,7 @@ for (const [withAnswers, name] of [
   execFileSync(chrome, [
     "--headless=new",
     "--disable-gpu",
+    "--allow-file-access-from-files",
     "--no-pdf-header-footer",
     `--user-data-dir=${join(tmp, "profile")}`,
     `--print-to-pdf=${join(OUT_DIR, name)}`,

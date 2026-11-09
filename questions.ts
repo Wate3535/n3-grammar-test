@@ -48,6 +48,9 @@ export type Question = {
   spoken?: boolean;
   // 発話表現: rasmda ko'rsatilgan (→) odamning ovozi.
   speaker?: "M" | "F";
+  // 聴解: vaziyat rasmi (発話表現) va variantlar rasmlari (課題理解).
+  picture?: string;
+  optionImages?: string[];
 };
 
 // =========================================================

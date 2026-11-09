@@ -2,6 +2,7 @@
 // har bir 問題 ning yaponcha ko'rsatmasi. Server va client uchun umumiy.
 
 import type { Question, SectionId } from "@/questions";
+import jlptImages from "@/lib/jlpt-images.json";
 
 export type PaperId = 1 | 2 | 3;
 
@@ -238,12 +239,29 @@ export function createPicker() {
 }
 
 // id va audio yo'lini avtomatik qo'yadi.
+// lib/jlpt-images.json — scripts/generate-jlpt-images.py yaratadi.
+// 発話表現: vaziyat rasmi; 課題理解: har bir variant (matni bo'yicha) uchun rasm.
+type ImageEntry = { picture?: string; options?: Record<string, string> };
+const IMAGES = jlptImages as Record<string, Record<string, ImageEntry>>;
+
+// id, audio va rasm yo'llarini avtomatik qo'yadi.
 export function buildTest(slug: string, drafts: Draft[]): Question[] {
-  return drafts.map((draft, index) => ({
-    ...draft,
-    id: index + 1,
-    ...(draft.section === 4 ? { audio: `/audio/${slug}/${index + 1}.mp3` } : {}),
-  }));
+  return drafts.map((draft, index) => {
+    const id = index + 1;
+    const images = IMAGES[slug]?.[String(id)];
+    const optionImages = images?.options
+      ? draft.options.map((option) => images.options?.[option] ?? "")
+      : undefined;
+
+    return {
+      ...draft,
+      id,
+      ...(draft.section === 4 ? { audio: `/audio/${slug}/${id}.mp3` } : {}),
+      ...(images?.picture ? { picture: images.picture } : {}),
+      // Faqat barcha variantlarning rasmi bo'lsa ishlatiladi.
+      ...(optionImages?.every(Boolean) ? { optionImages } : {}),
+    };
+  });
 }
 
 export function mondaiAudio(slug: string, mondai: number) {
