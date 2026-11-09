@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { GlossaryItem, Question } from "../questions";
+import { getMondaiInfo, numberInMondai } from "../lib/jlpt";
 import { LEVELS } from "../lib/levels";
 import { getTest } from "../lib/tests";
 
@@ -81,7 +82,65 @@ function questionBlock(q: Question, number: number, withAnswers: boolean) {
   </div>`;
 }
 
+// JLPT: real 問題用紙 kabi — qismlar, 問題 ko'rsatmalari; 聴解 da savol matni
+// yozilmaydi, ovozda o'qiladigan variantlar faqat javoblar PDF'ida chiqadi.
+function jlptBody(withAnswers: boolean) {
+  const spec = LEVEL.jlpt!;
+  const mondaiWord = TEST.level === "n5" ? "もんだい" : "問題";
+  let html = "";
+
+  for (const paper of spec.papers) {
+    const items = questions.map((q, index) => ({ q, index })).filter(({ q }) => paper.sections.includes(q.section));
+    const time = paper.minutes ? `${paper.minutes}分` : `約${paper.officialMinutes}分`;
+    html += `<h2 class="paper">${paper.title} <small>${paper.subtitle} · ${time}</small></h2>`;
+    let lastMondai: number | undefined;
+
+    items.forEach(({ q, index }, position) => {
+      if (q.mondai !== lastMondai) {
+        lastMondai = q.mondai;
+        html += `<div class="mondai"><b>${mondaiWord}${q.mondai}</b>　${escape(getMondaiInfo(spec, q)?.instruction ?? "").replace(/＿＿＿/g, '<span class="line"></span>')}</div>`;
+      }
+      if (q.passage && q.passage !== questions[index - 1]?.passage) {
+        html += `<div class="passage">${escape(q.passage).replace(/\n/g, "<br>")}</div>`;
+      }
+
+      const listening = q.section === 4;
+      const number = listening ? `${numberInMondai(questions, index)}番` : String(position + 1);
+      const hideOptions = listening && q.spoken && !withAnswers;
+      const options = hideOptions
+        ? `<p class="blank">（問題用紙に何も印刷されていません）</p>`
+        : `<ol>${q.options
+            .map((option, i) => {
+              const correct = withAnswers && i === q.answer;
+              return `<li class="${correct ? "correct" : ""}"><span class="num">${i + 1}</span>${escape(option)}${correct ? " ✓" : ""}</li>`;
+            })
+            .join("")}</ol>`;
+      const text = listening
+        ? withAnswers
+          ? `${escape(q.intro ?? "")}${marked(q.question)}`
+          : ""
+        : marked(q.question);
+      const script =
+        withAnswers && q.script
+          ? `<div class="script"><b>スクリプト</b>${q.script
+              .map((line) => `<p><b>${line.speaker === "M" ? "男" : "女"}：</b>${escape(line.text)}</p>`)
+              .join("")}</div>`
+          : "";
+
+      html += `<div class="question">
+        <p class="q"><span class="qnum">${number}</span>${q.image ? `<span class="image">${q.image}</span>` : ""}${text}</p>
+        ${options}
+        ${script}
+        ${withAnswers ? glossary(q.glossary) : ""}
+      </div>`;
+    });
+  }
+
+  return html;
+}
+
 function body(withAnswers: boolean) {
+  if (LEVEL.jlpt) return jlptBody(withAnswers);
   let html = "";
   let section = 0;
 
@@ -149,11 +208,16 @@ function page(withAnswers: boolean) {
   table.key { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
   table.key td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: center; font-size: 10.5pt; }
   .detail { break-before: page; }
+  h2.paper { background: #0f172a; break-before: page; }
+  h2.paper:first-of-type { break-before: auto; }
+  .mondai { border: 2px solid #0f172a; padding: 6px 10px; margin: 14px 0 8px; font-size: 10.5pt; break-after: avoid; }
+  .line { display: inline-block; width: 36px; border-bottom: 2px solid #0f172a; margin: 0 3px; }
+  .blank { margin: 0 0 0 32px; color: #64748b; font-size: 9.5pt; }
 </style></head>
 <body>
 <header>
   <h1>${LEVEL.title}（${LEVEL.label}）</h1>
-  <p>${TEST.name} · ${title} · ${questions.length}問 · ${LEVEL.examMinutes}分 · ${LEVEL.sections.length} section</p>
+  <p>${TEST.name} · ${title} · ${questions.length}問 · ${LEVEL.examMinutes}分 · ${LEVEL.jlpt ? `${LEVEL.jlpt.papers.length} 時間区分` : `${LEVEL.sections.length} section`}</p>
   ${withAnswers ? "" : `<p class="student">Ism, familiya: ______________________________　 Sana: ____________</p>`}
 </header>
 ${withAnswers ? `${answerKey()}<div class="detail">${body(true)}</div>` : body(false)}

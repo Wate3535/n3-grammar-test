@@ -159,7 +159,7 @@ export default async function AnalysisPage({
                         </p>
                         <p className="mt-1 font-semibold whitespace-pre-line text-slate-900">
                           {item.q.image ? `${item.q.image} ` : ""}
-                          {item.q.question.replace(/＿/g, "")}
+                          {item.q.question.replace(/＿/g, "") || item.q.script?.map((line) => line.text).join(" ")}
                         </p>
                       </div>
                       <div className="text-right">

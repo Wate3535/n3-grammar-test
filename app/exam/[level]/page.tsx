@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import ExamApp from "@/components/ExamApp";
+import JlptExamApp from "@/components/JlptExamApp";
 import { isLevelId, LEVELS } from "@/lib/levels";
 import { getStudentLevel } from "@/lib/session";
 import { getTestsByLevel } from "@/lib/tests";
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 
 // Faqat kod orqali shu darajaga kirgan o'quvchi testlarni ko'radi.
 // Boshqa darajalarning savollari brauzerga yuborilmaydi.
+// JFT-Basic — avvalgi interfeys, JLPT — rasmiy formatdagi alohida interfeys.
 export default async function ExamPage({
   params,
 }: {
@@ -28,5 +30,9 @@ export default async function ExamPage({
     questions,
   }));
 
-  return <ExamApp key={level} levelId={LEVELS[level].id} tests={tests} />;
+  if (LEVELS[level].jlpt) {
+    return <JlptExamApp key={level} levelId={level} tests={tests} />;
+  }
+
+  return <ExamApp key={level} levelId={level} tests={tests} />;
 }

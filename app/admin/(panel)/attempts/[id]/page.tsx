@@ -11,6 +11,7 @@ import {
 } from "@/lib/admin";
 import { isLevelId, LEVELS } from "@/lib/levels";
 import { getSupabase, type AttemptRow } from "@/lib/supabase";
+import { scoreAttempt } from "@/lib/scoring";
 import { getTest } from "@/lib/tests";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -30,6 +31,9 @@ export default async function AttemptPage({ params }: { params: Promise<{ id: st
   const test = getTest(attempt.test_slug);
   const sections = isLevelId(attempt.level) ? LEVELS[attempt.level].sections : [];
   const wrongCount = attempt.total - attempt.correct;
+  // JLPT: 得点区分 (基準点 bilan) saqlangan javoblardan qayta hisoblanadi.
+  const groups =
+    test && isLevelId(attempt.level) ? scoreAttempt(attempt.level, test.questions, attempt.answers ?? {}).groups : [];
 
   return (
     <>
@@ -49,6 +53,22 @@ export default async function AttemptPage({ params }: { params: Promise<{ id: st
         <StatCard label="Vaqt" value={formatDuration(attempt.duration_sec)} hint={FINISH_REASONS[attempt.finish_reason]} />
         <StatCard label="Warning" value={String(attempt.warnings)} />
       </div>
+
+      {groups.length > 0 && (
+        <div className="mb-6 grid gap-3 md:grid-cols-3">
+          {groups.map((group) => (
+            <Card key={group.id} className={group.passed ? "" : "border-red-200! bg-red-50!"}>
+              <p className="text-sm font-bold text-slate-900">{group.title}</p>
+              <p className="mt-1 text-2xl font-bold text-slate-900">
+                {group.score} <span className="text-base text-slate-500">/ {group.max}</span>
+              </p>
+              <p className={`mt-1 text-xs ${group.passed ? "text-slate-500" : "font-semibold text-red-700"}`}>
+                基準点 {group.min} · {group.correct}/{group.total} to‘g‘ri {group.passed ? "✓" : "✗ minimumdan past"}
+              </p>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Card className="mb-6">
         <div className="mb-4 flex items-center justify-between">
@@ -106,7 +126,7 @@ export default async function AttemptPage({ params }: { params: Promise<{ id: st
                       <p className="mb-1 text-xs text-slate-500">{q.type}</p>
                       <p className="font-semibold whitespace-pre-line text-slate-900">
                         {q.image ? `${q.image} ` : ""}
-                        {q.question.replace(/＿/g, "")}
+                        {q.question.replace(/＿/g, "") || q.script?.map((line) => line.text).join(" ")}
                       </p>
                       <div className="mt-2 grid gap-1 sm:grid-cols-2">
                         {q.options.map((option, optionIndex) => (

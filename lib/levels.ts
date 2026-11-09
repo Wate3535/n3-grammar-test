@@ -2,6 +2,7 @@
 // Bu fayl server va client uchun umumiy (maxfiy ma'lumot yo'q).
 
 import type { SectionId } from "@/questions";
+import { N3_SPEC, N4_SPEC, N5_SPEC, type JlptSpec } from "@/lib/jlpt";
 
 export const LEVEL_IDS = ["jft", "n3", "n4", "n5"] as const;
 
@@ -25,6 +26,8 @@ export type LevelConfig = {
   sections: SectionMeta[];
   passText: string;
   failText: string;
+  // Faqat JLPT: qismlar, ball guruhlari (基準点 bilan) va 問題 ko'rsatmalari.
+  jlpt?: JlptSpec;
 };
 
 const JLPT_SECTIONS: SectionMeta[] = [
@@ -32,13 +35,13 @@ const JLPT_SECTIONS: SectionMeta[] = [
     id: 1,
     title: "文字・語彙",
     subtitle: "Kanji va lug‘at",
-    types: "漢字読み · 表記 · 文脈規定 · 言い換え類義",
+    types: "漢字読み · 表記 · 文脈規定 · 言い換え類義 · 用法",
   },
   {
     id: 2,
     title: "文法",
     subtitle: "Grammatika",
-    types: "文の文法 · 並べ替え",
+    types: "文の文法 · 並べ替え · 文章の文法",
   },
   {
     id: 3,
@@ -50,7 +53,7 @@ const JLPT_SECTIONS: SectionMeta[] = [
     id: 4,
     title: "聴解",
     subtitle: "Tinglab tushunish",
-    types: "課題理解 · ポイント理解 · 即時応答",
+    types: "課題理解 · ポイント理解 · 発話表現 · 即時応答",
   },
 ];
 
@@ -96,37 +99,40 @@ export const LEVELS: Record<LevelId, LevelConfig> = {
     id: "n3",
     label: "JLPT N3",
     title: "日本語能力試験 N3",
-    examMinutes: 65,
+    examMinutes: 140,
     minScore: 0,
     maxScore: 180,
     passScore: 95,
     sections: JLPT_SECTIONS,
     passText: "合格 — N3 darajasi yetarli",
     failText: "不合格 — N3 uchun yetarli emas",
+    jlpt: N3_SPEC,
   },
   n4: {
     id: "n4",
     label: "JLPT N4",
     title: "日本語能力試験 N4",
-    examMinutes: 55,
+    examMinutes: 115,
     minScore: 0,
     maxScore: 180,
     passScore: 90,
     sections: JLPT_SECTIONS,
     passText: "合格 — N4 darajasi yetarli",
     failText: "不合格 — N4 uchun yetarli emas",
+    jlpt: N4_SPEC,
   },
   n5: {
     id: "n5",
     label: "JLPT N5",
     title: "日本語能力試験 N5",
-    examMinutes: 50,
+    examMinutes: 90,
     minScore: 0,
     maxScore: 180,
     passScore: 80,
     sections: JLPT_SECTIONS,
     passText: "合格 — N5 darajasi yetarli",
     failText: "不合格 — N5 uchun yetarli emas",
+    jlpt: N5_SPEC,
   },
 };
 

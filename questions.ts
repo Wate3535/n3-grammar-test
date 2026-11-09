@@ -39,6 +39,15 @@ export type Question = {
   audio?: string;
   script?: ScriptLine[];
   glossary?: GlossaryItem[];
+  // ---- Faqat JLPT uchun (JFT testlarida ishlatilmaydi) ----
+  // Qaysi 問題 ga tegishli (qism ichida 1 dan boshlanadi).
+  mondai?: number;
+  // 聴解: savoldan oldin diktor o'qiydigan vaziyat ("男の人と女の人が話しています。").
+  intro?: string;
+  // 聴解: javob variantlari ekranda yozilmaydi, audioda o'qiladi.
+  spoken?: boolean;
+  // 発話表現: rasmda ko'rsatilgan (→) odamning ovozi.
+  speaker?: "M" | "F";
 };
 
 // =========================================================

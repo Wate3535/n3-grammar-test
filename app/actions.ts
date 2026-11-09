@@ -2,10 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { findLevelByCode } from "@/lib/access";
-import { LEVELS, toScaledScore } from "@/lib/levels";
+import { LEVELS } from "@/lib/levels";
+import { scoreAttempt } from "@/lib/scoring";
 import { normalizePhone } from "@/lib/phone";
 import { clearStudentAccess, getStudentLevel, setStudentAccess } from "@/lib/session";
-import { getSupabase, type SectionScore } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import { getTest } from "@/lib/tests";
 
 // =========================================================
@@ -90,21 +91,9 @@ export async function saveAttempt(input: AttemptInput): Promise<SaveResult> {
     }
   }
 
-  const sectionScores: Record<string, SectionScore> = {};
-  let correct = 0;
-  for (const q of test.questions) {
-    const key = String(q.section);
-    sectionScores[key] ??= { correct: 0, total: 0 };
-    sectionScores[key].total += 1;
-    if (answers[String(q.id)] === q.answer) {
-      sectionScores[key].correct += 1;
-      correct += 1;
-    }
-  }
-
-  const total = test.questions.length;
-  const scaled = toScaledScore(config, correct, total);
-  const maxDuration = config.examMinutes * 60 + 300;
+  const result = scoreAttempt(level, test.questions, answers);
+  // JLPT'da 聴解 vaqti audioga bog'liq — zaxira bilan.
+  const maxDuration = config.examMinutes * 60 + 1200;
   const durationSec = Math.min(Math.max(Math.round(Number(input.durationSec) || 0), 0), maxDuration);
   const warnings = Math.min(Math.max(Math.round(Number(input.warnings) || 0), 0), 10);
   const finishReason = ["manual", "timeout", "warnings"].includes(input.finishReason)
@@ -133,12 +122,12 @@ export async function saveAttempt(input: AttemptInput): Promise<SaveResult> {
     level,
     test_slug: test.slug,
     test_name: test.name,
-    correct,
-    total,
-    scaled_score: scaled,
-    max_score: config.maxScore,
-    passed: scaled >= config.passScore,
-    section_scores: sectionScores,
+    correct: result.correct,
+    total: result.total,
+    scaled_score: result.scaled,
+    max_score: result.maxScore,
+    passed: result.passed,
+    section_scores: result.sectionScores,
     answers,
     warnings,
     duration_sec: durationSec,
