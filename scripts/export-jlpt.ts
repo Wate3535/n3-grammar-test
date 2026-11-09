@@ -19,7 +19,7 @@ const items = test.questions
 
 const mondai = spec.mondai
   .filter((m) => m.paper === 3)
-  .map((m) => ({ mondai: m.mondai, type: m.type, instruction: m.instruction }));
+  .map((m) => ({ mondai: m.mondai, type: m.type, instruction: m.instruction, answerSeconds: m.answerSeconds ?? 10 }));
 
 process.stdout.write(
   JSON.stringify({

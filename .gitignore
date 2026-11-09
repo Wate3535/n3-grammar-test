@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# qog'oz imtihon uchun uzluksiz 聴解 audio (katta fayllar, lokal)
+pdf/*.mp3

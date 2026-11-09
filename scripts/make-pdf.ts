@@ -107,6 +107,7 @@ function jlptBody(withAnswers: boolean) {
       const listening = q.section === 4;
       const number = listening ? `${numberInMondai(questions, index)}番` : String(position + 1);
       const hideOptions = listening && q.spoken && !withAnswers;
+      const memo = hideOptions && !q.picture ? `<div class="memo">メモ</div>` : "";
       const fileUrl = (src: string) => pathToFileURL(join(ROOT, "public", src)).href;
       const picture = q.picture ? `<img class="picture" src="${fileUrl(q.picture)}">` : "";
       const options = q.optionImages
@@ -117,7 +118,7 @@ function jlptBody(withAnswers: boolean) {
             })
             .join("")}</div>`
         : hideOptions
-        ? `<p class="blank">（問題用紙に何も印刷されていません）</p>`
+        ? `<p class="blank">（問題用紙に何も印刷されていません）</p>${memo}`
         : `<ol>${q.options
             .map((option, i) => {
               const correct = withAnswers && i === q.answer;
@@ -185,6 +186,109 @@ function answerKey() {
   return `<h2>Javoblar kaliti</h2><table class="key">${rows.join("")}</table>`;
 }
 
+// ---------------------------------------------------------
+// JLPT qog'oz imtihon: muqova (問題用紙) va 解答用紙 (javob varaqasi)
+// ---------------------------------------------------------
+
+function jlptCover() {
+  const spec = LEVEL.jlpt!;
+  const rows = spec.papers
+    .map((paper) => {
+      const count = questions.filter((q) => paper.sections.includes(q.section)).length;
+      const time = paper.minutes ? `${paper.minutes}分` : `約${paper.officialMinutes}分`;
+      return `<tr><td>${paper.title}</td><td>${paper.subtitle}</td><td>${count}問</td><td>${time}</td></tr>`;
+    })
+    .join("");
+
+  return `<section class="cover">
+  <p class="cover-level">${LEVEL.label}</p>
+  <h1>${LEVEL.title}</h1>
+  <p class="cover-kind">問題用紙　·　Savollar kitobchasi</p>
+  <p class="cover-test">${TEST.name}　·　${questions.length}問</p>
+  <table class="fields">
+    <tr><th>受験者名 / Ism, familiya</th><td></td></tr>
+    <tr><th>Telegram</th><td></td></tr>
+    <tr><th>日付 / Sana</th><td></td></tr>
+  </table>
+  <table class="papers"><tr><th>時間区分</th><th></th><th>問題数</th><th>時間</th></tr>${rows}</table>
+  <div class="notes">
+    <p><b>注意 / Qoidalar</b></p>
+    <ol class="rules">
+      <li>試験が始まるまで、この問題用紙を開けないでください。<br><span>Imtihon boshlanguncha kitobchani ochmang.</span></li>
+      <li>答えは解答用紙にマークしてください。問題用紙に書いた答えは採点されません。<br><span>Javoblarni alohida javob varaqasiga (解答用紙) belgilang. Kitobchadagi belgilar hisoblanmaydi.</span></li>
+      <li>各時間区分の時間が終わったら、次に進みます。前の時間区分に戻ることはできません。<br><span>Har bir qism vaqti tugagach keyingisiga o‘tiladi, oldingi qismga qaytilmaydi.</span></li>
+      <li>聴解の音声は一回だけ流れます。問題用紙にメモをしてもかまいません。<br><span>Tinglash audiosi faqat bir marta qo‘yiladi. Kitobchaga qoralama yozish mumkin.</span></li>
+      <li>合格点 ${LEVEL.passScore}／${LEVEL.maxScore}点。基準点：${spec.groups.map((g) => `${g.title} ${g.min}点`).join("、")}。<br><span>O‘tish bali ${LEVEL.passScore}/${LEVEL.maxScore}; har bir bo‘limda minimal ball (基準点) olinishi kerak.</span></li>
+    </ol>
+  </div>
+</section>`;
+}
+
+function answerSheet() {
+  const spec = LEVEL.jlpt!;
+  const mondaiWord = TEST.level === "n5" ? "もんだい" : "問題";
+  const bubbles = (count: number) =>
+    Array.from({ length: count }, (_, i) => `<span class="bubble">${i + 1}</span>`).join("");
+
+  const papers = spec.papers
+    .map((paper) => {
+      const items = questions.map((q, index) => ({ q, index })).filter(({ q }) => paper.sections.includes(q.section));
+      const groups: string[] = [];
+      let current: number | undefined;
+      let rows = "";
+      const flush = () => {
+        if (current !== undefined) groups.push(`<div class="m"><p class="mh">${mondaiWord}${current}</p>${rows}</div>`);
+        rows = "";
+      };
+      items.forEach(({ q, index }, position) => {
+        if (q.mondai !== current) {
+          flush();
+          current = q.mondai;
+        }
+        const number = q.section === 4 ? `${numberInMondai(questions, index)}番` : `${position + 1}`;
+        rows += `<p class="row"><span class="n">${number}</span>${bubbles(q.options.length)}</p>`;
+      });
+      flush();
+      return `<div class="sheet-paper"><h3>${paper.title}</h3><div class="cols">${groups.join("")}</div></div>`;
+    })
+    .join("");
+
+  return `<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><title>${LEVEL.label} ${TEST.name} 解答用紙</title>
+<style>
+  @page { size: A4; margin: 12mm 12mm; }
+  body { font-family: "Yu Gothic", "Meiryo", sans-serif; color: #0f172a; font-size: 10pt; }
+  .top { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #0f172a; padding-bottom: 6px; }
+  .top h1 { margin: 0; font-size: 17pt; }
+  .top p { margin: 0; font-size: 9.5pt; color: #334155; }
+  table.fields { width: 100%; border-collapse: collapse; margin: 8px 0; }
+  table.fields th { width: 40mm; text-align: left; font-size: 9pt; background: #f1f5f9; border: 1px solid #0f172a; padding: 5px 6px; }
+  table.fields td { border: 1px solid #0f172a; height: 8mm; }
+  .howto { font-size: 8.5pt; color: #334155; margin: 4px 0 8px; }
+  .howto .on { background: #0f172a; color: #0f172a; }
+  .sheet-paper { border: 1.5px solid #0f172a; margin-top: 8px; break-inside: avoid; }
+  .sheet-paper h3 { margin: 0; padding: 4px 8px; background: #0f172a; color: #fff; font-size: 10.5pt; }
+  .cols { columns: 4; column-gap: 8px; padding: 6px 8px; }
+  .m { break-inside: avoid; margin-bottom: 6px; }
+  .mh { margin: 0 0 2px; font-weight: bold; font-size: 9pt; border-bottom: 1px solid #94a3b8; }
+  .row { margin: 0; display: flex; align-items: center; gap: 4px; height: 17px; }
+  .n { display: inline-block; width: 30px; text-align: right; font-weight: bold; font-size: 9pt; margin-right: 2px; }
+  .bubble { display: inline-block; width: 15px; height: 15px; line-height: 15px; border: 1.2px solid #0f172a; border-radius: 50%; text-align: center; font-size: 8pt; }
+</style></head>
+<body>
+  <div class="top">
+    <div><p>${LEVEL.label}　${TEST.name}</p><h1>解答用紙　·　Javob varaqasi</h1></div>
+    <p>${questions.length}問</p>
+  </div>
+  <table class="fields">
+    <tr><th>受験者名 / Ism, familiya</th><td></td><th>Telegram</th><td></td></tr>
+  </table>
+  <p class="howto">マークの仕方：正しい答えの番号を一つ、黒くぬりつぶしてください。
+    <span class="bubble on">1</span> よい　·　Har bir savolga bitta doirachani to‘liq bo‘yang. Tuzatish uchun o‘chirg‘ich bilan to‘liq o‘chiring.</p>
+  ${papers}
+</body></html>`;
+}
+
 function page(withAnswers: boolean) {
   const title = withAnswers ? "解答 — Javoblar" : "問題 — Savollar";
 
@@ -219,7 +323,7 @@ function page(withAnswers: boolean) {
   table.key td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: center; font-size: 10.5pt; }
   .detail { break-before: page; }
   h2.paper { background: #0f172a; break-before: page; }
-  h2.paper:first-of-type { break-before: auto; }
+  header + h2.paper, .detail > h2.paper:first-child { break-before: auto; }
   .mondai { border: 2px solid #0f172a; padding: 6px 10px; margin: 14px 0 8px; font-size: 10.5pt; break-after: avoid; }
   .line { display: inline-block; width: 36px; border-bottom: 2px solid #0f172a; margin: 0 3px; }
   .picture { display: block; width: 62mm; margin: 4px 0 6px 32px; border: 1px solid #cbd5e1; }
@@ -230,13 +334,30 @@ function page(withAnswers: boolean) {
   .pic small { font-size: 8pt; }
   .pic.correct { border: 2px solid #16a34a; background: #dcfce7; }
   .blank { margin: 0 0 0 32px; color: #64748b; font-size: 9.5pt; }
+  .cover { height: 255mm; display: flex; flex-direction: column; }
+  .cover-level { margin: 18mm 0 0; font-size: 13pt; color: #475569; }
+  .cover h1 { margin: 2mm 0 0; font-size: 30pt; }
+  .cover-kind { margin: 4mm 0 0; font-size: 16pt; font-weight: bold; border-top: 3px solid #0f172a; border-bottom: 3px solid #0f172a; padding: 3mm 0; }
+  .cover-test { font-size: 12pt; color: #334155; }
+  .cover table.fields { width: 100%; border-collapse: collapse; margin: 6mm 0; }
+  .cover table.fields th { width: 55mm; text-align: left; background: #f1f5f9; border: 1px solid #0f172a; padding: 6px 8px; font-size: 10pt; }
+  .cover table.fields td { border: 1px solid #0f172a; }
+  .cover table.papers { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
+  .cover table.papers th, .cover table.papers td { border: 1px solid #94a3b8; padding: 4px 8px; text-align: left; }
+  .cover table.papers th { background: #f1f5f9; }
+  .notes { margin-top: auto; border: 1.5px solid #0f172a; padding: 4mm 6mm; font-size: 10pt; }
+  .notes p { margin: 0 0 2mm; }
+  ol.rules { display: block; list-style: decimal; margin: 0; padding-left: 18px; }
+  ol.rules li { margin-bottom: 2mm; padding: 0; }
+  ol.rules span { color: #475569; font-size: 9pt; }
+  .memo { margin: 4px 0 0 32px; height: 14mm; border: 1px dashed #94a3b8; border-radius: 4px; font-size: 8pt; color: #94a3b8; padding: 2px 6px; }
 </style></head>
 <body>
-<header>
+${LEVEL.jlpt && !withAnswers ? jlptCover() : `<header>
   <h1>${LEVEL.title}（${LEVEL.label}）</h1>
   <p>${TEST.name} · ${title} · ${questions.length}問 · ${LEVEL.examMinutes}分 · ${LEVEL.jlpt ? `${LEVEL.jlpt.papers.length} 時間区分` : `${LEVEL.sections.length} section`}</p>
   ${withAnswers ? "" : `<p class="student">Ism, familiya: ______________________________　 Sana: ____________</p>`}
-</header>
+</header>`}
 ${withAnswers ? `${answerKey()}<div class="detail">${body(true)}</div>` : body(false)}
 </body></html>`;
 }
@@ -261,12 +382,15 @@ const chrome = findChrome();
 const tmp = mkdtempSync(join(tmpdir(), "jft-pdf-"));
 mkdirSync(OUT_DIR, { recursive: true });
 
-for (const [withAnswers, name] of [
-  [false, `${PREFIX}-savollar.pdf`],
-  [true, `${PREFIX}-javoblar.pdf`],
-] as const) {
+const outputs: { name: string; render: () => string }[] = [
+  { name: `${PREFIX}-savollar.pdf`, render: () => page(false) },
+  { name: `${PREFIX}-javoblar.pdf`, render: () => page(true) },
+  ...(LEVEL.jlpt ? [{ name: `${PREFIX}-javob-varaqasi.pdf`, render: answerSheet }] : []),
+];
+
+for (const { name, render } of outputs) {
   const html = join(tmp, `${name}.html`);
-  writeFileSync(html, page(withAnswers), "utf-8");
+  writeFileSync(html, render(), "utf-8");
 
   execFileSync(chrome, [
     "--headless=new",
