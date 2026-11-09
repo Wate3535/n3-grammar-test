@@ -819,6 +819,27 @@ function ListeningSession({
     });
   }, [steps.length, onFinish]);
 
+  // "Keyingi" tugmasi: joriy audio/pauza to'xtatilib, keyingi savolga o'tiladi.
+  // Ko'rsatma o'qilayotgan bo'lsa — ko'rsatma o'tkazib yuboriladi.
+  const isLastItem = playingItem >= items.length - 1;
+  const skip = () => {
+    if (!started) return;
+    if (step.kind === "instruction") {
+      setStepIdx(stepIdx + 1);
+      return;
+    }
+    const target = steps.findIndex((item, index) => index > stepIdx && item.item === playingItem + 1);
+    if (target === -1) {
+      if (window.confirm("聴解ni yakunlaysizmi? Test yakunlanadi.")) {
+        audioRef.current?.pause();
+        onFinish();
+      }
+      return;
+    }
+    setFailedStep(-1);
+    setStepIdx(target);
+  };
+
   // Audio bosqichlari: manba qo'yiladi va ijro etiladi.
   useEffect(() => {
     if (!started) return;
@@ -915,6 +936,7 @@ function ListeningSession({
               <p>• Audio to‘xtovsiz yangraydi: avval har bir 問題 ning ko‘rsatmasi, keyin savollar.</p>
               <p>• Har bir savol faqat 1 marta eshittiriladi. Javobni savoldan keyingi pauzada belgilang.</p>
               <p>• Ba’zi savollarda javob variantlari yozilmagan — ular audioda o‘qiladi (1, 2, 3).</p>
+              <p>• Javobni belgilagach, «Keyingi savol →» tugmasi bilan kutmasdan keyingi savolga o‘tishingiz mumkin.</p>
               <p>• Hozirgi va oldingi savollarning javobini o‘zgartirish mumkin.</p>
             </div>
             <button
@@ -986,12 +1008,27 @@ function ListeningSession({
               />
             )}
 
-            {viewItem !== playingItem && (
+            {viewItem !== playingItem ? (
               <button
                 onClick={() => setManualView(null)}
                 className="mt-5 w-full h-11 rounded-xl bg-blue-600 text-white font-bold"
               >
                 Hozirgi savolga qaytish
+              </button>
+            ) : (
+              <button
+                onClick={skip}
+                className={`mt-6 w-full h-12 rounded-xl font-bold text-white ${
+                  isLastItem && step.kind !== "instruction"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                {step.kind === "instruction"
+                  ? "Ko‘rsatmani o‘tkazib yuborish →"
+                  : isLastItem
+                    ? "聴解ni yakunlash"
+                    : "Keyingi savol →"}
               </button>
             )}
           </section>
@@ -1029,7 +1066,7 @@ function ListeningSession({
               ))}
             </div>
             <p className="text-[11px] text-slate-400 mt-3">
-              聴解 audio tugashi bilan test avtomatik yakunlanadi.
+              «Keyingi savol →» bilan kutmasdan o‘tish mumkin. Oxirgi savoldan keyin test yakunlanadi.
             </p>
           </aside>
         </div>
