@@ -7,7 +7,7 @@ Ovozlar (Microsoft neural, edge-tts):
 
 Ishga tushirish (loyiha ildizidan):
   pip install edge-tts imageio-ffmpeg
-  python scripts/generate-audio.py
+  python scripts/generate-audio.py <test-slug>   (masalan: n3-1)
 
 Natija: har bir savolning `audio` maydonidagi yo'l (public/ ichida).
 """
@@ -37,9 +37,6 @@ GAP_SECTION = 1.5  # savol va dialog orasidagi pauza (s)
 
 
 def load_questions(test_slug: str):
-    if test_slug not in {"test-2", "test-3", "test-7", "test-8"}:
-        raise ValueError(f"Unknown test: {test_slug}")
-
     result = subprocess.run(
         f"npx tsx scripts/export-questions.ts {test_slug}",
         cwd=ROOT,

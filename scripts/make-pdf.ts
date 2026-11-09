@@ -10,38 +10,23 @@ import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import {
-  questions as questions2,
-  TEST as TEST_2,
-  type GlossaryItem,
-  type Question,
-} from "../questions";
-import { questions3, TEST_3 } from "../questions-test-3";
-import { questions7, TEST_7 } from "../questions-test-7";
-import { questions8, TEST_8 } from "../questions-test-8";
+import type { GlossaryItem, Question } from "../questions";
+import { LEVELS } from "../lib/levels";
+import { getTest } from "../lib/tests";
 
-const TESTS = [
-  { ...TEST_2, questions: questions2 },
-  { ...TEST_3, questions: questions3 },
-  { ...TEST_7, questions: questions7 },
-  { ...TEST_8, questions: questions8 },
-];
-
-const testSlug = process.argv[2] ?? TEST_2.slug;
-const found = TESTS.find((test) => test.slug === testSlug);
+const testSlug = process.argv[2] ?? "test-2";
+const found = getTest(testSlug);
 if (!found) throw new Error(`Unknown test: ${testSlug}`);
 const TEST = found;
+const LEVEL = LEVELS[TEST.level];
 const { questions } = TEST;
 
 const ROOT = resolve(__dirname, "..");
 const OUT_DIR = join(ROOT, "pdf");
 
-const SECTIONS: Record<number, { title: string; subtitle: string }> = {
-  1: { title: "文字と語彙", subtitle: "So‘z va lug‘at" },
-  2: { title: "会話と表現", subtitle: "Suhbat va ifodalar" },
-  3: { title: "聴解", subtitle: "Tinglab tushunish" },
-  4: { title: "読解", subtitle: "O‘qib tushunish" },
-};
+const SECTIONS: Record<number, { title: string; subtitle: string }> = Object.fromEntries(
+  LEVEL.sections.map((section) => [section.id, section])
+);
 
 const escape = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -135,7 +120,7 @@ function page(withAnswers: boolean) {
   const title = withAnswers ? "解答 — Javoblar" : "問題 — Savollar";
 
   return `<!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><title>JFT-Basic A2 ${TEST.name} ${title}</title>
+<html lang="ja"><head><meta charset="utf-8"><title>${LEVEL.label} ${TEST.name} ${title}</title>
 <style>
   @page { size: A4; margin: 16mm 14mm; }
   body { font-family: "Yu Gothic", "Meiryo", "MS Gothic", sans-serif; color: #0f172a; font-size: 11.5pt; line-height: 1.6; }
@@ -167,8 +152,8 @@ function page(withAnswers: boolean) {
 </style></head>
 <body>
 <header>
-  <h1>国際交流基金日本語基礎テスト（JFT-Basic A2）</h1>
-  <p>${TEST.name} · ${title} · ${questions.length}問 · 60分 · 4 section</p>
+  <h1>${LEVEL.title}（${LEVEL.label}）</h1>
+  <p>${TEST.name} · ${title} · ${questions.length}問 · ${LEVEL.examMinutes}分 · ${LEVEL.sections.length} section</p>
   ${withAnswers ? "" : `<p class="student">Ism, familiya: ______________________________　 Sana: ____________</p>`}
 </header>
 ${withAnswers ? `${answerKey()}<div class="detail">${body(true)}</div>` : body(false)}
@@ -188,13 +173,16 @@ function findChrome() {
   return found;
 }
 
+// Eski JFT fayllari nomi saqlanadi: JFT-Basic-A2-test-8-..., JLPT: JLPT-n3-1-...
+const PREFIX = TEST.level === "jft" ? `JFT-Basic-A2-${TEST.slug}` : `JLPT-${TEST.slug}`;
+
 const chrome = findChrome();
 const tmp = mkdtempSync(join(tmpdir(), "jft-pdf-"));
 mkdirSync(OUT_DIR, { recursive: true });
 
 for (const [withAnswers, name] of [
-  [false, `JFT-Basic-A2-${TEST.slug}-savollar.pdf`],
-  [true, `JFT-Basic-A2-${TEST.slug}-javoblar.pdf`],
+  [false, `${PREFIX}-savollar.pdf`],
+  [true, `${PREFIX}-javoblar.pdf`],
 ] as const) {
   const html = join(tmp, `${name}.html`);
   writeFileSync(html, page(withAnswers), "utf-8");
