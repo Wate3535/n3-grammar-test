@@ -4,6 +4,7 @@
 import { questions as questions2, TEST as TEST_2, type Question } from "@/questions";
 import { questions3, TEST_3 } from "@/questions-test-3";
 import { questions7, TEST_7 } from "@/questions-test-7";
+import { questions11, TEST_11 } from "@/questions-test-11";
 import { questions10, TEST_10 } from "@/questions-test-10";
 import { questions9, TEST_9 } from "@/questions-test-9";
 import { questions8, TEST_8 } from "@/questions-test-8";
@@ -21,6 +22,7 @@ export type TestDefinition = {
 
 // Har bir daraja ichida yangi testlar birinchi turadi.
 export const TESTS: TestDefinition[] = [
+  { ...TEST_11, level: "jft", questions: questions11 },
   { ...TEST_10, level: "jft", questions: questions10 },
   { ...TEST_9, level: "jft", questions: questions9 },
   { ...TEST_8, level: "jft", questions: questions8 },
